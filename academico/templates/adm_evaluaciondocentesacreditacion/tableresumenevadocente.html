@@ -1,0 +1,155 @@
+{% load sga_extras %}
+<style>
+    table.dataTable > thead > tr > th, table.dataTable > thead > tr > td:not(.sorting_disabled) {
+        padding-right: 2px;
+        padding-top: 2px;
+        padding-bottom: 2px;
+    }
+</style>
+<table class="table table-bordered table-striped display" id="example">
+    <thead class="table-light">
+    <tr>
+        <th colspan="50" style="text-align:center;">COMPONENTE 1: RESULTADO PROMEDIO POR CRITERIO Y TIPO DE EVALUACIÓN</th>
+        <th colspan="3" style="text-align: center; "><span style="text-align:center;">COMPONEN.</span></th>
+    </tr>
+    <tr>
+        <th colspan="2" rowspan="2" style="text-align:center;">CRITERIOS</th>
+        <th colspan="16" style="text-align:center;">PROMEDIOS DE EVALUACIONES</th>
+        <th colspan="16" style="text-align: center; "><span style="text-align:center;">RESULTADOS SEGUN PONDERACIONES</span></th>
+        <th colspan="16" style="text-align: center;"><span style="text-align:center;">PONDERACION SEGUN DISTRIBUTIVO</span></th>
+        <th rowspan="3" style="text-align: center; ">1:5</th>
+        <th rowspan="3" style="text-align: center; ">1:100</th>
+    </tr>
+    <tr>
+        {#                            <th colspan="3" style="text-align:center; ">CRITERIOS</th>#}
+        <th colspan="4" style="text-align:center; ">DOCENCIA</th>
+        <th colspan="4" style="text-align:center; ">INVESTIGACION</th>
+        <th colspan="4" style="text-align:center;  ">GESTION</th>
+        <th colspan="4" style="text-align:center;  ">VINCULACIÓN</th>
+        <th colspan="4" style="text-align: center; "><span style="text-align:center;">DOCENCIA</span></th>
+        <th colspan="4" style="text-align: center; "><span style="text-align:center;">INVESTIGACION</span></th>
+        <th colspan="4" style="text-align: center;"><span style="text-align:center;">GESTION</span></th>
+        <th colspan="4" style="text-align:center;  ">VINCULACIÓN</th>
+        <th colspan="4" style="text-align: center;"><span style="text-align:center;">DOCENCIA</span></th>
+        <th colspan="4" style="text-align: center; "><span style="text-align:center;">INVESTIGACION</span></th>
+        <th colspan="4" style="text-align: center; "><span style="text-align:center;">GESTION</span></th>
+        <th colspan="4" style="text-align:center;  ">VINCULACIÓN</th>
+    </tr>
+    <tr>
+        <th style="text-align:center;">Apellidos y nombres ____________________________________________ </th>
+        <th style=" text-align:center">Facultad</th>
+{#        <th style=" text-align:center">Carrera ______________________________</th>#}
+        <th style=" text-align:center;">Het.</th>
+        <th style=" text-align:center;">Aut</th>
+        <th style=" text-align:center;">Par.</th>
+        <th style=" text-align:center;">Dir.</th>
+        <th style=" text-align:center;">Het.</th>
+        <th style=" text-align:center;">Aut</th>
+        <th style=" text-align:center;">Par.</th>
+        <th style=" text-align:center;">Dir.</th>
+        <th style=" text-align:center;">Het.</th>
+        <th style=" text-align:center;">Aut</th>
+        <th style=" text-align:center;">Par.</th>
+        <th style=" text-align:center;">Dir.</th>
+        <th style=" text-align:center;">Het.</th>
+        <th style=" text-align:center;">Aut</th>
+        <th style=" text-align:center;">Par.</th>
+        <th style=" text-align:center;">Dir.</th>
+        <th style=" text-align:center;">Het.</th>
+        <th style=" text-align:center;">Aut</th>
+        <th style=" text-align:center;">Par.</th>
+        <th style=" text-align:center;">Dir.</th>
+        <th style=" text-align:center;">Het.</th>
+        <th style=" text-align:center;">Aut</th>
+        <th style=" text-align:center;">Par.</th>
+        <th style=" text-align:center;">Dir.</th>
+        <th style=" text-align:center;">Heter.</th>
+        <th style=" text-align:center;">Aut</th>
+        <th style=" text-align:center;">Par.</th>
+        <th style=" text-align:center;">Dir.</th>
+        <th style=" text-align:center;">Het.</th>
+        <th style=" text-align:center;">Aut</th>
+        <th style=" text-align:center;">Par.</th>
+        <th style=" text-align:center;">Dir.</th>
+        <th style="width: 30px; text-align:center;">Total</th>
+        <th style="width: 30px; text-align:center;">Hrs</th>
+        <th style="width: 30px; text-align:center;">Pond.</th>
+        <th style="width: 30px; text-align:center;">Valor</th>
+        <th style="width: 30px; text-align:center;">Total</th>
+        <th style="width: 30px; text-align:center;">Hrs</th>
+        <th style="width: 30px; text-align:center;">Pond.</th>
+        <th style="width: 30px; text-align:center;">Valor</th>
+        <th style="width: 30px; text-align:center;">Total</th>
+        <th style="width: 30px; text-align:center;">Hrs</th>
+        <th style="width: 30px; text-align:center;">Pond.</th>
+        <th style="width: 30px; text-align:center;">Valor</th>
+        <th style="width: 30px; text-align:center;">Total</th>
+        <th style="width: 30px; text-align:center;">Hrs</th>
+        <th style="width: 30px; text-align:center;">Pond.</th>
+        <th style="width: 30px; text-align:center;">Valor</th>
+    </tr>
+    </thead>
+    <tbody style="height: 300px; overflow: auto">
+    {% for distributivo in distributivos %}
+        <tr>
+            <td style="font-size: 11px">{{ distributivo.0 }} {{ distributivo.1 }} {{ distributivo.2 }}</td>
+            <td style="font-size: 11px">{{ distributivo.3 }} <br>CARRERA: {{ distributivo.4|default_if_none:" " }}</td>
+{#            <td style="font-size: 11px">{{ distributivo.4|default_if_none:" " }}</td>#}
+            <td >{{ distributivo.5|floatformat:2 }}</td>
+            <td >{{ distributivo.6|floatformat:2 }}</td>
+            <td >{{ distributivo.7|floatformat:2 }}</td>
+            <td >{{ distributivo.8|floatformat:2 }}</td>
+            <td >{{ distributivo.9|floatformat:2 }}</td>
+            <td >{{ distributivo.10|floatformat:2 }}</td>
+            <td >{{ distributivo.11|floatformat:2 }}</td>
+            <td >{{ distributivo.12|floatformat:2 }}</td>
+            <td >{{ distributivo.13|floatformat:2 }}</td>
+            <td >{{ distributivo.14|floatformat:2 }}</td>
+            <td >{{ distributivo.15|floatformat:2 }}</td>
+            <td >{{ distributivo.16|floatformat:2 }}</td>
+            <td >{{ distributivo.48|floatformat:2 }}</td>
+            <td >{{ distributivo.49|floatformat:2 }}</td>
+            <td >{{ distributivo.50|floatformat:2 }}</td>
+            <td >{{ distributivo.51|floatformat:2 }}</td>
+            <td >{{ distributivo.17|floatformat:2 }}</td>
+            <td >{{ distributivo.18|floatformat:2 }}</td>
+            <td >{{ distributivo.19|floatformat:2 }}</td>
+            <td >{{ distributivo.20|floatformat:2 }}</td>
+            <td >{{ distributivo.21|floatformat:2 }}</td>
+            <td >{{ distributivo.22|floatformat:2 }}</td>
+            <td >{{ distributivo.23|floatformat:2 }}</td>
+            <td >{{ distributivo.24|floatformat:2 }}</td>
+            <td >{{ distributivo.25|floatformat:2 }}</td>
+            <td >{{ distributivo.26|floatformat:2 }}</td>
+            <td >{{ distributivo.27|floatformat:2 }}</td>
+            <td >{{ distributivo.28|floatformat:2 }}</td>
+            <td >{{ distributivo.52|floatformat:2 }}</td>
+            <td >{{ distributivo.53|floatformat:2 }}</td>
+            <td >{{ distributivo.54|floatformat:2 }}</td>
+            <td >{{ distributivo.55|floatformat:2 }}</td>
+            <td >{{ distributivo.29|floatformat:2 }}</td>
+            <td >{{ distributivo.30|floatformat:2 }}</td>
+            <td >{{ distributivo.31|floatformat:2 }}</td>
+            <td >{{ distributivo.32|floatformat:2 }}</td>
+            <td >{{ distributivo.33|floatformat:2 }}</td>
+            <td >{{ distributivo.34|floatformat:2 }}</td>
+            <td >{{ distributivo.35|floatformat:2 }}</td>
+            <td >{{ distributivo.36|floatformat:2 }}</td>
+            <td >{{ distributivo.37|floatformat:2 }}</td>
+            <td >{{ distributivo.38|floatformat:2 }}</td>
+            <td >{{ distributivo.39|floatformat:2 }}</td>
+            <td >{{ distributivo.40|floatformat:2 }}</td>
+            <td >{{ distributivo.41|floatformat:2 }}</td>
+            <td >{{ distributivo.42|floatformat:2 }}</td>
+            <td >{{ distributivo.43|floatformat:2 }}</td>
+            <td >{{ distributivo.44|floatformat:2 }}</td>
+            <td style="text-align:center;">{{ distributivo.45|floatformat:2 }}</td>
+            <td style="text-align:center;">{{ distributivo.45|cincoacien|floatformat:2 }}</td>
+        </tr>
+    {% empty %}
+        <tr>
+            <td colspan="41">NO EXISTEN DISTRIBUTIVOS DEFINIDOS</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>

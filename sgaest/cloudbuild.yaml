@@ -1,0 +1,38 @@
+steps:
+  # Decrypt environment variables (secrets)
+  - name: "gcr.io/cloud-builders/gcloud"
+    args:
+      - kms
+      - decrypt
+      - --ciphertext-file=environments.enc
+      - --plaintext-file=.env
+      - --location=${_LOCATION}
+      - --keyring=${_KEYRING}
+      - --key=${_KEY}
+
+  # build docker image
+  - name: gcr.io/cloud-builders/docker
+    args: [
+      'build',
+        '-t', 'gcr.io/$PROJECT_ID/sgaest', '.'
+      ]
+
+  # Push docker image to Container registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/sgaest']
+  
+  # Deploy to Cloud Run service
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args: [
+      'run',
+      'deploy', 'sgaest',
+      '--image', 'gcr.io/$PROJECT_ID/sgaest',
+      '--region', 'us-east1',
+      '--allow-unauthenticated'
+    ]
+
+images:
+- gcr.io/$PROJECT_ID/sgaest
+
+timeout: 1800s

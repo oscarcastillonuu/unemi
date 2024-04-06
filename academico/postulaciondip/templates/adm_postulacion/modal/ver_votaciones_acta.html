@@ -1,0 +1,41 @@
+<div class="scrollable-table">
+    {% for eActaParalelo in eActaSeleccionDocente.get_convocatorias %}
+        <table class="table table-responsive">
+            <thead class="table table-light">
+            <tr colspan="4"><b>{{ eActaParalelo }}</b></tr>
+            </thead>
+            <tr>
+                <th>Miembro Comité</th>
+                <th>Principal</th>
+                <th>Alterno 1</th>
+                <th>Alterno 2</th>
+            </tr>
+            <tr>
+                <td>{{ eActaParalelo.get_miembro_comite_coordinador.cargo }}: {{ eActaParalelo.get_miembro_comite_coordinador.persona }}</td>
+                <td>{{ eActaParalelo.get_votos_coordinador_principal|default:""}}</td>
+                <td>{{ eActaParalelo.get_votos_coordinador_alterno_1|default:"" }}</td>
+                <td>{{ eActaParalelo.get_votos_coordinador_alterno_2|default:""}} </td>
+            </tr>
+            <tr>
+                <td>{{ eActaParalelo.get_miembro_comite_profesor_a_fin.cargo }}: {{ eActaParalelo.get_miembro_comite_profesor_a_fin.persona }}</td>
+                <td>{{ eActaParalelo.get_votos_profesor_a_fin_principal|default:"" }}</td>
+                <td>{{ eActaParalelo.get_votos_profesor_a_fin_alterno_1 |default:"" }} </td>
+                <td>{{ eActaParalelo.get_votos_profesor_a_fin_alterno_2|default:"" }} </td>
+            </tr>
+            <tr>
+                <td>{{ eActaParalelo.get_miembro_comite_director_escuela.cargo }}:{{ eActaParalelo.get_miembro_comite_director_escuela.persona }}</td>
+                <td>{{ eActaParalelo.get_votos_director_escuela_principal |default:""}}</td>
+                <td>{{ eActaParalelo.get_votos_director_escuela_alterno_1|default:""  }} </td>
+                <td>{{ eActaParalelo.get_votos_director_escuela_alterno_2 |default:""}} </td>
+            </tr>
+            <tr>
+                <td>{{ eActaParalelo.get_miembro_comite_director_posgrado.cargo }}:{{ eActaParalelo.get_miembro_comite_director_posgrado.persona }}</td>
+                <td>{{ eActaParalelo.get_votos_director_posgrado_principal|default:"" }}</td>
+                <td>{{ eActaParalelo.get_votos_director_posgrado_alterno_1|default:""  }}</td>
+                <td>{{ eActaParalelo.get_votos_director_posgrado_alterno_2|default:"" }}</td>
+            </tr>
+        </table>
+    {% endfor %}
+</div>
+
+

@@ -1,0 +1,59 @@
+{% load sga_extras %}
+{% block heading %}
+    <link href="/static/css/table-responsive.css?1.0.0" type="text/css" rel="stylesheet" />
+    <script type="text/javascript" src="/static/js/jquery.fancybox.pack.js?v=1.0.0"></script>
+    <script type="text/javascript">
+        $(function(){
+
+        });
+    </script>
+{% endblock %}
+
+{% if not tienecreado %}
+    <div class="alert alert-danger">
+        <strong> El periodo académico {{ periodo }} NO tiene creado nivel, favor revisar en el módulo "Niveles y Materias" </strong>
+    </div>
+{% endif %}
+{% if tienecreado %}
+<div class="form-search">
+    <label for="id_cohorteadmitido">Periodos a elegir </label>
+    <select name="id_periodoelegir" id="id_periodoelegir" class="form-control" style="width: 80%;">
+        {% for licor in listadoperiodo %}
+            <option value="{{ licor.0 }}">{{ licor.1 }}</option>
+        {% endfor %}
+    </select>
+</div>
+<br><br>
+{% endif %}
+
+<!--
+<div class="alert alert-info">
+    <strong> Está por inscribir y matricular  en el periodo {{ periodo }}, favor revisar antes de Inscribir</strong>
+</div>
+<table class='table table-bordered table-striped'>
+    <thead>
+    <tr>
+        <th style="width: 45px; text-align: center">SEDE</th>
+        <td>{{ sede.nombre }}</td>
+    </tr>
+    <tr>
+        <th style="width: 45px; text-align: center">CARRERA</th>
+        <td>{{ carrera.nombre }}</td>
+    </tr>
+    <tr>
+        <th style="width: 45px; text-align: center">MODALIDAD</th>
+        <td>{% if modalidad %}{{ modalidad.nombre }}{% else %}{{ modalidad|default_if_none:"" }}{% endif %}</td>
+    </tr>
+    <tr>
+        <th style="width: 45px; text-align: center">SESION</th>
+        <td>{% if sesion %}{{ sesion.nombre }}{% else %}{{ sesion|default_if_none:"" }}{% endif %}</td>
+    </tr>
+    </thead>
+</table>-->
+<input type="hidden" id="idintegranteentrevista" name="idintegranteentrevista" value="{{ integrante.id }}">
+<input type="hidden" id="codigosede" name="codigosede" value="{{ sede.id }}">
+<input type="hidden" id="codigocarrera" name="codigocarrera" value="{{ carrera.id }}">
+<input type="hidden" id="codigomodalidad" name="codigomodalidad" value="{% if modalidad %}{{ modalidad.id }}{% else %}0{% endif %}">
+<input type="hidden" id="codigosesion" name="codigosesion" value="{% if sesion %}{{ sesion.id }}{% else %}0{% endif %}">
+<input type="hidden" id="idnivel" name="idnivel" value="{{ idnivel }}">
+<input type="hidden" id="codigoperiodo" name="codigoperiodo" value="{{ codigoperiodo }}">

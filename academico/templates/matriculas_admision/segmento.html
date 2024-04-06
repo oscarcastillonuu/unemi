@@ -1,0 +1,57 @@
+<tr><td>
+    {% if materia.cerrado %}
+        <div class="alert alert-error">
+            MATERIA CERRADA EL {{ materia.fechacierre|date:'d-m-Y' }}
+        </div>
+    {% endif %}
+    <table class="table table-bordered table-striped">
+        <thead>
+        <tr>
+            <th>Estudiantes</th>
+
+            <!-- GENERICO -->
+            {% include "calificaciones/generico/encabezado.html" %}
+
+            <th style="text-align: center; width: 50px;">Nota Final</th>
+            <th style="text-align: center; width: 50px;">Asist.</th>
+            <th style="text-align: center; width: 50px;">Clases</th>
+            <th style="text-align: center; width: 100px;">Estado</th>
+            <th style="width: 60px;">Observ</th>
+            <th style="text-align: center; width: 50px;">Cierre</th>
+        </tr>
+
+        </thead>
+        <tbody>
+        {% for asignadomateria in materiaasignada %}
+            <tr id='materiaasignadarow{{ asignadomateria.id }}'>
+                <td title="{{ asignadomateria.matricula.inscripcion.persona.emails|default_if_none:"No tiene email"  }}">{{ asignadomateria.matricula.inscripcion }}></td>
+                {{ asignadomateria.matricula.inscripcion }}<br/>
+                {% if asignadomateria.valida_pararecord %}
+                    <span class='label label-info tu' title="Pasa al record">VALIDA</span>
+                {% else %}
+                    <span class='label label-important tu' title="No pasa al record">NO VALIDA</span>
+                {% endif %}
+                {% if asignadomateria.homologada or asignadomateria.convalidada %}
+                    <span class='label label-warning'>HOMOLOGADA</span>
+                {% endif %}
+                {% if asignadomateria.retirado %}
+                    <span class='label label-important'>RETIRADO</span>
+                {% endif %}
+                </td>
+{#                {%  if periodo.id == 82 %}#}
+                    <!-- GENERICO -->
+                    {% include "calificaciones/generico/filanotasadm.html" %}
+
+
+                    {# DATOS ADICIONALES #}
+
+                    {% include "calificaciones/generico/extradata.html" %}
+{#                {% endif %}#}
+
+                <td>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</td></tr>

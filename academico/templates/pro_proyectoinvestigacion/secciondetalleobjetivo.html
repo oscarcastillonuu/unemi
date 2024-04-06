@@ -1,0 +1,33 @@
+{% load humanize %}
+{% load sga_extras %}
+{% for detalle in detalles %}
+    <tr id="filadetalle_{{ objetivo.id }}{{ forloop.counter }}">
+        <td style="text-align: right;"><b>{{ forloop.counter }}</b></td>
+        <td style="text-align: justify">{{ detalle.actividad }}</td>
+        <td style="text-align: right">{{ detalle.ponderacion|floatformat:2 }} %</td>
+        <td style="text-align: center">{{ detalle.fechainicio|date:"d-m-Y" }}</td>
+        <td style="text-align: center">{{ detalle.fechafin|date:"d-m-Y" }}</td>
+        <td style="text-align: justify">
+            {% if detalle.entregable %}
+                {{ detalle.entregable }}
+            {% elif detalle.lista_entregables %}
+                {% for entregable in detalle.lista_entregables %}
+                    {{ entregable.entregable }}<br>
+                {% endfor %}
+            {% else %}
+                <span class="label label-warning">FALTA ENTREGABLE</span>
+            {% endif %}
+        </td>
+        <td style="text-align: justify">
+            {% for responsable in detalle.lista_responsables %}
+                <span class="label label-info">{{ responsable.persona.nombre_completo_inverso }}</span>
+            {% endfor %}
+        </td>
+        <td style="text-align: center;">
+            <a href="javascript:;" class="btn btn-tini btn-info editaractividad" id="{{ detalle.id|encrypt }}" dobj="{{ numobj }}" data-bs-toggle="tooltip" data-bs-placement="top" title="Editar"><i class="fa fa-edit"></i></a>
+        </td>
+        <td style="text-align: center;">
+            <a href="javascript:;" class="btn btn-tini btn-danger eliminardetalle" id="{{ detalle.id|encrypt }}" titulo="{{ detalle.actividad }}" idobj="{{ objetivo.id }}" dobj="{{ numobj }}" idfila="{{ objetivo.id }}{{ forloop.counter }}" data-bs-toggle="tooltip" data-bs-placement="top" title="Eliminar"><i class="fa fa-remove"></i></a>
+        </td>
+    </tr>
+{% endfor %}

@@ -1,0 +1,27 @@
+<table class="table table-bordered" style="font-size: 11px">
+    <thead>
+{#    <tr>#}
+{#    <th colspan="10"> Observaci&oacute;n: {{ traspaso.observacion }}</th>#}
+{#    </tr>#}
+    <tr>
+        <th style="width: 100px;">Usuario</th>
+        <th style="width: 100px;">Fecha</th>
+        <th style="width: 100px;">Estado</th>
+        <th>Corrección</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for correccion in correcciones %}
+        <tr class="normal">
+            <td>{{ correccion.usuario_creacion }}</td>
+            <td>{{ correccion.fecha_creacion|date:'d-m-Y' }}</td>
+            <td>{{ correccion.get_estado_display }}</td>
+            <td>{{ correccion.observacion }}</td>
+        </tr>
+    {% empty %}
+        <tr>
+            <td colspan="4" style="text-align: center">NO EXISTEN CORRECCIONES</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>

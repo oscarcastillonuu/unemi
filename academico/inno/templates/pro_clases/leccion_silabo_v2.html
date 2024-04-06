@@ -1,0 +1,333 @@
+{% load sga_extras %}
+<form>
+    <div class="row">
+        <div class="col-sm-12">
+            {% with cronograma=materia|args:leccion.fecha|call:'cronograma_silabo' %}
+                <table class="table table_primary table_striped">
+                    <thead>
+                        <tr>
+                            <th style="text-transform: none!important;">Temas y subtemas</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                {% for cro in cronograma %}
+                                    <div class="accordion accordion-flush" id="idsemana{{ semana.id }}">
+                                    {% with semanas=materia|args:cro.fechainicio|args:cro.fechafin|call:'planificacion_semanal_silabo' %}
+                                        {% if cro.semana == 0 %}
+                                            {% with vigente=cro|args:leccion.id|call:'semana_vigente' %}
+                                                {% if vigente %}
+                                                    <div class="accordion-item">
+                                                        <h4 class="accordion-header" id="eliminartema0">
+                                                            <button class="accordion-button py-2" type="button" data-bs-toggle="collapse" data-bs-target="#id_descripcion_0" aria-expanded="false">
+                                                                <h6 class="mb-0 texto-blue">
+                                                                    SEMANA: {% if cro.semana > 0 %}{{ cro.semana }}{% endif %}- DE {{ cro.fechainicio|date:"d-m-Y" }} HASTA {{ cro.fechafin|date:"d-m-Y" }}
+                                                                    {% if cro.semana == 0 %}
+                                                                        - {{ cro.obejetivosemanal }}
+                                                                    {% endif %}
+                                                                </h6>
+                                                            </button>
+                                                        </h4>
+                                                    </div>
+                                                {% endif %}
+                                            {% endwith %}
+                                        {% endif %}
+                                        {% if semanas %}
+                                            {% for semana in semanas %}
+                                                {% with temas1=semana|args:leccion.id|call:'temas_semanales_asistencia_v2' %}
+                                                        {% if temas1 %}
+                                                            {% for tema in temas1 %}
+                                                                <div class="accordion-item">
+                                                                    <h4 class="accordion-header" id="eliminartema{{ tema.0 }}">
+                                                                        <button class="accordion-button py-2" type="button" data-bs-toggle="collapse" data-bs-target="#id_descripcion_{{ tema.0 }}" aria-expanded="false">
+                                                                            <h6 class="mb-0 texto-blue">
+                                                                                <strong>
+                                                                                    SEMANA: {{ cro.semana }}- del {{ cro.fechainicio|date:"d-m-Y" }} hasta {{ cro.fechafin|date:"d-m-Y" }}
+                                                                                    {%  for planifi in  semana.cronograma_semanal %}
+                                                                                        [ <strong style="color: #902b2b">{{ planifi.cronograma.obejetivosemanal }}</strong> ]
+                                                                                    {% endfor %}
+                                                                                    <strong>
+                                                                                        {% if semana.lista_salidas_clases %}
+                                                                                            {% for salida in semana.lista_salidas_clases %}
+                                                                                                <br>[ <strong style="color: #1c00cf">{{ salida.descripcion }}</strong>]
+                                                                                            {% endfor %}
+                                                                                        {% endif %}
+                                                                                    </strong>
+                                                                                </strong><br>
+                                                                                <input class="chktem form-check-input" ids="tipo" type="checkbox" name="chktem_{{ tema.0 }}" id="chktem_{{ tema.0 }}" onclick="addtema({{ tema.0 }},this,{{ leccion.id  }})"> TEMA {{ tema.2 }}: {{ tema.3 }}
+                                                                            </h6>
+                                                                        </button>
+                                                                    </h4>
+                                                                    <div id="id_descripcion_{{ tema.0 }}" class="accordion-collapse collapse show" data-bs-parent="#items_{{ tema.0 }}" aria-expanded="false" style="">
+                                                                        <div class="accordion-body">
+                                                                            {% with  subtemas=semana|args:tema.1|args:leccion.id|call:'subtemas_semanales_asistencia_v2' subtemasadicionales=semana|args:tema.0|call:'subtemas_adicionales' %}
+                                                                                {% for subtema in subtemas %}
+                                                                                    <input class="chksub form-check-input" ids="tipo" type="checkbox" name="chksub_{{ subtema.0 }}" id="chksub_{{ subtema.0 }}" onclick="addsubtema({{ subtema.0 }},this,{{ tema.0 }},{{ leccion.id }})" style="vertical-align: middle" value="{{ subtema.0 }}">
+                                                                                    <i id="nomsubtema{{ subtema.0 }}">SUBTEMA {{ subtema.1 }}: {{ subtema.2 }}</i>
+                                                                                    {% if forloop.last %}
+                                                                                        <input type="hidden" name="total_{{ tema.0 }}" id="total_{{ tema.0 }}" value="{{ forloop.counter }}">
+                                                                                    {% endif %}
+                                                                                    <br>
+                                                                                {% endfor %}
+                                                                                {% if subtemasadicionales %}
+                                                                                    {% for suba in subtemasadicionales %}
+                                                                                        <input class="chksub form-check-input" ids="tipo" type="checkbox" name="chksub_{{ suba.id}}" id="chksub_{{ suba.id }}" onclick="addsubtemaadicional({{ suba.id }},this,{{ tema.0 }},{{ leccion.id }})" style="vertical-align: middle" value="{{ suba.id }}"> <i id="nomsubtema{{ suba.id }}">SUBTEMA {{ suba }}</i>
+                                                                                        {% if forloop.last %}
+                                                                                            <input type="hidden" name="total_{{ tema.0 }}" id="total_{{ tema.0 }}" value="{{ forloop.counter }}">
+                                                                                        {% endif %}
+                                                                                        <br>
+                                                                                    {% endfor %}
+                                                                                {% endif %}
+                                                                            {% endwith %}
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            {% endfor %}
+                                                        {% endif %}
+                                                {% endwith %}
+                                            {% endfor %}
+                                        {% else %}
+                                            {% if cro.semana > 0 %}
+                                                <b class="text-danger">No tiene temas programados en la semana</b>
+                                            {% endif %}
+                                        {% endif %}
+                                    {% endwith %}
+                                    </div>
+                                {% empty %}
+                                        <b class="text-warning" style="text-align: center">No tiene registrado o aprobado sílabo digital</b>
+                                {% endfor %}
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            {% endwith %}
+        </div>
+    </div>
+    <textarea idleccion='{{ leccion.id }}' id='contenido' rows="10" style="width: 100%; display: none" {% if not abierta %}disabled="disabled"{% endif %}>{% if leccion.aperturaleccion %}{{ leccion.contenido }}{% else %}{{ lecciongrupo.contenido }}{% endif %}</textarea>
+    <hr style="display: none;"/>
+    <h6 style="display: none">Estrategias Metodologicas</h6>
+    <textarea idleccion='{{ leccion.id }}' id='estrategiasmetodologicas' rows="10" style="width: 100%; display: none;" {% if not abierta %}disabled="disabled"{% endif %}>{% if leccion.aperturaleccion %}{{ leccion.estrategiasmetodologicas }}{% else %}{{ lecciongrupo.estrategiasmetodologicas }}{% endif %}</textarea>
+    <hr style="display: none;"/>
+    {% if leccion.leccion_es_practica_salud %}
+        <h4>Lugar</h4>
+        <input type="text" idleccion='{{ leccion.id }}' id='lugar' style="width: 100%;" name="lugar" {% if not abierta %}disabled="disabled"{% endif %} value="{% if leccion.leccion_es_practica_salud and leccion.mi_registro_practica.lugar %}{{ leccion.mi_registro_practica.lugar }}{% endif %}" />
+        <hr/>
+        <h6>Objetivo</h6>
+        <textarea idleccion='{{ leccion.id }}' id='objetivo' rows="10" style="width: 100%;" {% if not abierta %}disabled="disabled"{% endif %}>{% if leccion.leccion_es_practica_salud and leccion.mi_registro_practica.objetivo %}{{ leccion.mi_registro_practica.objetivo }}{% endif %}</textarea>
+        <hr/>
+    {% endif %}
+    <h6 class="mt-1">Observaciones</h6>
+    <textarea class="mb-1" idleccion='{{ leccion.id }}' id='observaciones' rows="10" style="width: 100%!important;" {% if not abierta %}disabled="disabled"{% endif %}>{% if leccion.aperturaleccion %}{{ leccion.observaciones }}{% else %}{{ lecciongrupo.observaciones }}{% endif %}</textarea>
+
+    {% if not usa_planificacion %}
+        <br>
+        <h6 style="display: none;">Deber de Clase</h6>
+        <table class="table table-striped" style="display: none">
+            <tbody id="deber">
+            {% if deber %}
+                <tr>
+                    <td>
+                        {{ deber.nombre }}
+                        {% if abierta %}
+                            <a href='{{ deber.download_link }}' class='btn btn-success btn-mini'><span class="fa fa-arrow-down" ></span>Descargar</a>
+                            <a href='/pro_clases?action=deldeber&id={{ lecciongrupo.id }}' class='btn btn-danger btn-mini' ></a>
+                        {% endif %}
+                    </td>
+                </tr>
+                </tbody>
+            {% else %}
+                {% if abierta %}
+                    <tfoot>
+                    <tr>
+                        <td>
+                            <a href="javascript:;" class="btn btn-info" id="subirdeber"><i class="fa fa-plus "></i> Subir deber</a>
+                        </td>
+                    </tr>
+                    </tfoot>
+                {% endif %}
+            {% endif %}
+        </table>
+        <br>
+    {% endif %}
+</form>
+<script>
+    $(function() {
+
+        $("#subirdeber").click(function(){
+            if (solicitudes<=0){
+                bloqueointerface();
+                location.href = '/pro_clases?action=adddeberes&id={{ lecciongrupo.id }}';
+                bloqueointerface();
+            } else {
+                smoke.alert("Tiene en proceso envio de asistencia o contenido que no han terminado.");
+            }
+        });
+
+        {% for tema in temas %}
+            $('#chktem_'+{{ tema.tema.id }}).prop('checked', true);
+            {% if not abierta %}
+                $('#chktem_'+{{ tema.tema.id }}).prop('disabled', true);
+            {% endif %}
+            lista_items2.push({{ tema.tema.id }});
+        {% endfor %}
+        {% for subtema in subtemas %}
+            $('#chksub_'+{{  subtema.subtema.id }}).prop('checked', true);
+            {% if not abierta %}
+                $('#chksub_'+{{  subtema.subtema.id }}).prop('disabled', true);
+            {% endif %}
+            lista_items1.push('{{  subtema.subtema.id }}');
+        {% endfor %}
+        {% for subta in subtemasad %}
+            $('#chksub_'+{{  subta.subtema.id }}).prop('checked', true);
+            lista_items3.push({{  subta.subtema.id }});
+        {% endfor %}
+
+        {% if not abierta %}
+            $(".chksub, .chktem").prop('disabled', true);
+        {% endif %}
+
+        actualizarobservacion = function(intento){
+            var id;
+            var contenido;
+            contenido = $("#observaciones").val().trim();
+            id = $("#observaciones").attr("idleccion");
+            $("#observaciones").css({"background-color":"rgb(217, 237, 247)"});
+            $.ajax({
+                type:"POST",
+                url:"/pro_clases",
+                data:{'action': 'observaciones', 'id': id, 'val': contenido},
+                error:function(){
+                    if (intento>=100){
+                        solicitudes -= 1;
+                        $("#observaciones").css({"background-color":"rgba(240, 128, 128, 0.21)"});
+                        $("#observaciones").removeAttr("disabled");
+                    } else {
+                        actualizarobservacion(intento+1);
+                    }
+                },
+                success:function(data){
+                    solicitudes -=1;
+                    $("#observaciones").removeAttr("disabled");
+                    if (data.result=="ok"){
+                        $("#observaciones").css({"background-color":"rgba(148, 255, 183, 0.23)"});
+                    } else {
+                        $("#observaciones").css({"background-color":"rgba(240, 128, 128, 0.21)"});
+                    }
+                }
+            });
+        };
+
+        $("#observaciones").change(function() {
+            solicitudes +=1;
+            $(this).prop('disabled', true);
+            actualizarobservacion(0);
+        });
+
+        actualizarcontenido = function(intento){
+            var contenido = $("#contenido").val().trim();
+            var id = $("#contenido").attr("idleccion");
+            $("#contenido").css({"background-color":"rgb(217, 237, 247)"});
+            $.ajax({
+                type:"POST",
+                url:"/pro_clases",
+                data:{'action': 'contenido', 'id': id, 'val': contenido},
+                error:function(){
+                    if (intento>=100){
+                        solicitudes -= 1;
+                        $("#contenido").css({"background-color":"rgba(240, 128, 128, 0.21)"});
+                        $("#contenido").removeAttr("disabled");
+                    } else {
+                        actualizarcontenido(intento+1);
+                    }
+                },
+                success:function(data){
+                    solicitudes -= 1;
+                    $("#contenido").removeAttr("disabled");
+                    if (data.result=="ok"){
+                        $("#contenido").css({"background-color":"rgba(148, 255, 183, 0.23)"});
+                    } else {
+                        $("#contenido").css({"background-color":"rgba(240, 128, 128, 0.21)"});
+                    }
+                }
+            });
+        };
+
+        $("#contenido").change(function(intento) {
+            solicitudes +=1;
+            $(this).prop('disabled', true);
+            actualizarcontenido(0);
+        });
+
+        /*PARA PRACTICAS */
+        actualizarlugar = function(intento){
+            let lugar = $("#lugar").val().trim();
+            let id = $("#lugar").attr("idleccion");
+            $("#lugar").css({"background-color":"rgb(217, 237, 247)"});
+            $.ajax({
+                type:"POST",
+                url:"/pro_clases",
+                data:{'action': 'lugarpractica', 'id': id, 'val': lugar},
+                error:function(){
+                    if (intento>=100){
+                        solicitudes -= 1;
+                        $("#lugar").css({"background-color":"rgba(240, 128, 128, 0.21)"});
+                        $("#lugar").removeAttr("disabled");
+                    } else {
+                        actualizarlugar(intento+1);
+                    }
+                },
+                success:function(data){
+                    solicitudes -= 1;
+                    $("#lugar").removeAttr("disabled");
+                    if (data.result=="ok"){
+                        $("#lugar").css({"background-color":"rgba(148, 255, 183, 0.23)"});
+                    } else {
+                        $("#lugar").css({"background-color":"rgba(240, 128, 128, 0.21)"});
+                    }
+                }
+            });
+        };
+
+        $("#lugar").change(function() {
+            solicitudes +=1;
+            $(this).prop('disabled', true);
+            actualizarlugar(0);
+        });
+
+        actualizarobjetivo = function(intento){
+            let objetivo = $("#objetivo").val().trim();
+            let id = $("#objetivo").attr("idleccion");
+            $("#lugar").css({"background-color":"rgb(217, 237, 247)"});
+            $.ajax({
+                type:"POST",
+                url:"/pro_clases",
+                data:{'action': 'objetivopractica', 'id': id, 'val': objetivo},
+                error:function(){
+                    if (intento>=100){
+                        solicitudes -= 1;
+                        $("#objetivo").css({"background-color":"rgba(240, 128, 128, 0.21)"});
+                        $("#objetivo").removeAttr("disabled");
+                    } else {
+                        actualizarobjetivo(intento+1);
+                    }
+                },
+                success:function(data){
+                    solicitudes -= 1;
+                    $("#objetivo").removeAttr("disabled");
+                    if (data.result=="ok"){
+                        $("#objetivo").css({"background-color":"rgba(148, 255, 183, 0.23)"});
+                    } else {
+                        $("#objetivo").css({"background-color":"rgba(240, 128, 128, 0.21)"});
+                    }
+                }
+            });
+        };
+
+        $("#objetivo").change(function() {
+            solicitudes +=1;
+            $(this).prop('disabled', true);
+            actualizarobjetivo(0);
+        });
+    });
+</script>

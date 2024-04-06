@@ -1,0 +1,67 @@
+{% load sga_extras %}
+<section class="section section-lg intro intro-slider pb-0 bg-50" style="padding-top: 0px!important;">
+    <div class="swiper-container swiper-half" data-swiper='{"pagination":{"type":"fraction"}}'>
+        <div class="swiper-wrapper">
+            {% if noticias %}
+                {% for n in noticias %}
+                    <div class="swiper-slide">
+                        <div class="container-xl px-0">
+                            <div class="row align-items-center flex-lg-row-reverse">
+                                <div class="col-lg-6 text-center p-0 ps-lg-7 ps-sm-2">
+                                    <div class="box-content-img bg-transparent" style="border-radius: 0px!important;">
+                                        <img src="{{ n.get_fondo }}" alt="" class=""/>
+                                    </div>
+                                </div>
+                                <div class="col-lg-5">
+                                    <div class="section-sm">
+                                        <h2 class="text-blue-opacity h1">{{ n.titulo|truncatechars:30 }}</h2>
+                                        <p class="text-muted-1 lh-15">
+                                            {{ n.subtitulo|truncatechars:100 }}
+                                        </p>
+                                        <br>
+                                        <a class="btn btn-secondary-orange" href="{{ request.path }}?action=noticia&id={{ n.id|encrypt }}">Ver noticia</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="swiper-slide">
+                        <div class="container-xl px-0">
+                            <div class="row align-items-center flex-lg-row-reverse">
+                                <div class="col-lg-6 text-center p-0 ps-lg-7 ps-sm-2">
+                                    <div class="box-content-img bg-transparent" style="border-radius: 0px!important;">
+                                        <img src="{{ img_header }}" alt="" class=""/>
+                                    </div>
+                                </div>
+                                <div class="col-lg-5">
+                                    <div class="section-sm">
+                                        <h2 class="text-blue-opacity h1">Unemi Deporte</h2>
+                                        <p class="text-muted-1 lh-15">
+                                            ¡Bienvenido a Unemi Deporte, tu destino definitivo para la pasión y la acción en el mundo del deporte! En este espacio vibrante, celebramos la excelencia, el compañerismo y el espíritu competitivo que impulsa a nuestra comunidad.
+                                        </p>
+                                        <br>
+{#                                        <a class="btn btn-secondary-orange" href="{{ request.path }}?action=noticia&id={{ n.id|encrypt }}">Ver noticia</a>#}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+            {% endif %}
+        </div>
+        <div class="container-fluid">
+            <div class="row flex-row-reverse">
+              <div class="col-10 col-sm-8 col-xxl-5 col-md-5">
+                <div class="swiper-controls">
+                  <div class="swiper-navigation">
+                    <div class="swiper-button-prev mdi-arrow-left" tabindex="0" role="button" aria-label="Previous slide"></div>
+                    <div class="swiper-button-next mdi-arrow-right" tabindex="0" role="button" aria-label="Next slide"></div>
+                  </div>
+                  <div class="swiper-pagination swiper-pagination-fraction"><span class="swiper-pagination-current">01</span>/<span class="swiper-pagination-total">03</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+    </div>
+</section>

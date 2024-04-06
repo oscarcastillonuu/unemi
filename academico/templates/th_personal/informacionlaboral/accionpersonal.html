@@ -1,0 +1,261 @@
+{% extends 'th_personal/base_menu.html' %}
+{% load sga_extras %}
+{% block heading_ext %}
+     <script type="text/javascript">
+        $(function (){
+            $('.experienciaverificar').click(function () {
+                var id = $(this).attr('idcon');
+                var check=$(this).is(':checked');
+               ActualizarEstadoExt(id,'verificarexperiencia',check)
+            });
+
+        });
+     </script>
+{% endblock %}
+{% block subtitle %}
+    Listado de acciones de personal registradas
+{% endblock %}
+{% block buttons_action %}
+ <a href="javascript:void(0)"
+       onclick="formModalBase('{{ servidor.id }}','ADICIONAR ACCIÓN DE PERSONAS','addaccion')" class="btn btn-success">
+        <i class="fa fa-plus"></i> Adicionar
+    </a>
+{% endblock %}
+{% block content %}
+    <div class="">
+        <table class="table table_primary tabla_responsive">
+            <thead class="table-light">
+            <tr>
+                <th >Nro de documento</th>
+                <th >Tipo</th>
+                <th >Motivo</th>
+                <th >Cargo</th>
+                <th >Unidad</th>
+                <th >Ubicación</th>
+                <th >Fecha</th>
+                <th >Estado</th>
+                <th ></th>
+                <th ></th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for l in listado %}
+                <tr>
+                    <td class="w-5">
+                        {% if l.numero %}
+                        {{ l.numero }}-{{ l.abreviatura }}
+                        {% else %}
+                            {{ l.numerodocumento }}
+                        {% endif %}
+                    </td>
+
+                    <td class="w-8">
+                        {{ l.tipo }}
+                    </td>
+                    <td class="w-10">
+                        {% if l.motivoaccion %}
+                            {{ l.motivoaccion }}
+                        {% else %}
+                        {{ l.motivo.motivo }}
+                        {% endif %}
+                    </td>
+                    </td>
+                    <td class="w-25">
+                        {% if l.denominacionpuesto %}
+                        {{ l.denominacionpuesto }}
+                        {% endif %}
+                    </td>
+                    <td class="w-25">
+                         {% if l.departamento %}
+                        {{ l.departamento }}
+                        {% endif %}
+                    </td>
+                    <td class="w-25">
+                        {{ l.documento }}
+                    </td>
+                    </td>
+                    <td class="w-10">
+                        {{ l.fechadesde|date:'d-m-Y' }}
+                    </td>
+
+                    <td class="w-10" colspan="2">
+                        {% if l2.estado %}
+                            <span class="text-{{ l.color_estado }}">Aprobado</span>
+                        {% else %}
+                            <span class="text-{{ l.color_estado }}">{{ l.get_estadoarchivo_display }}</span>
+                        {% endif %}
+
+                        {% if  l.archivo and l.estadoarchivo == 0 %}
+                            <p>
+                                <a href="{{ l.descargararchivo }}"
+                                   data-width="2048" data-height="1380"
+                                   data-fancybox="accion_{{ l.id }}"
+                                   data-caption="Acción de personal">
+                                    <i class="fa fa-file-pdf-o text-danger fs-4"></i> Sin firma
+                                </a>
+                            </p>
+                        {% else %}
+                            <p>
+                                <a href="/media/{{ l.documento_firmado }}"
+                                   data-width="2048" data-height="1380"
+                                   data-fancybox="accion_{{ l.id }}"
+                                   data-caption="Acción de personal">
+                                    <i class="fa fa-file-pdf-o text-danger fs-4"></i> Firmado
+                                </a>
+                            </p>
+                        {% endif %}
+                    </td>
+                    </td>
+                    <td class="text-center align-middle w-5">
+                        <div class="dropdown">
+                            <div class="dropdown dropleft">
+                                <a href="javascript:void(0);"
+                                   class="btn-icon btn btn-ghost btn-sm rounded-circle"
+                                   data-bs-toggle="dropdown" data-offset="-140" aria-haspopup="true"
+                                   aria-expanded="false">
+                                    <i class="fa fa-ellipsis-v" aria-hidden="true"></i>
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <span class="dropdown-header"><i class="fa fa-cogs"></i> Acciones</span>
+                                    {% if not l.abreviatura %}
+                                    <li>
+                                        <a class="dropdown-item"
+                                           href="javascript:void(0)"
+                                           onclick="eliminarajax('{{ l.id|encrypt }}','Acción: {{ l }}','delaccionpersonal')">
+                                            <i class="fa fa-trash-o dropdown-item-icon"></i> Eliminar
+                                        </a>
+                                    </li>
+                                        <li>
+                                        <a class="dropdown-item"
+                                           href="javascript:void(0)"
+                                           onclick="formModalBase('{{ l.id|encrypt }}','Editar acción','editaccionpersonal','modal-lg')">
+                                            <i class="fa fa-edit dropdown-item-icon"></i> Editar
+                                        </a>
+                                    </li>
+                                    {% endif %}
+                                    <li>
+                                        <a class="dropdown-item"
+                                           href="javascript:void(0)"
+                                           onclick="formModalBase('{{ l.id }}','Historial','historialfirmadosvacaciones','modal-md',false)">
+                                            <i class="fa fa-clock dropdown-item-icon"></i> Historial
+                                        </a>
+                                    </li>
+
+                                </ul>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td class="text-center" colspan="8">Sin registros existentes</td>
+                </tr>
+            {% endfor %}
+            {% for l2 in listado2 %}
+                 <tr>
+                    <td class="w-2">
+                        <p>{{ l2.numerodocumento }}</p>
+                        <p><span class="text text-info"> No migrado</span></p>
+
+                    </td>
+{#                    <td class="w-2">#}
+{#                        {{ l2.regimenlaboral }}#}
+{#                    </td>#}
+                    <td class="w-2">
+                        {{ l2.tipo }}
+                    </td>
+                    <td class="w-2">
+                        {{ l2.motivo }}
+                    </td>
+                    </td>
+                    <td class="w-2">
+                        {{ l2.cargo }}
+                    </td>
+                     <td class="w-2">
+                        {{ l2.unidad }}
+                    </td>
+                     <td class="w-2">
+                        {{ l2.ubicacionfisico }}
+                    </td>
+                    </td>
+                    <td class="w-2">
+                        {{ l2.fecharige|date:'d-m-Y' }}
+                    </td>
+
+                    <td class="text-truncate">
+                    {% if l2.estado %}
+                         <span class="text-{{ l2.color_estado }}">Aprobado</span>
+                     {% else %}
+                          <span class="text-{{ l2.color_estado }}">{{ l2.get_estadoarchivo_display }}</span>
+                     {% endif %}
+                     {% if not l2.estado %}
+                            <p>
+                                <a href="{{ l2.documento_firmado }}"
+                                   data-width="2048" data-height="1380"
+                                   data-fancybox="accion_{{ l2.id }}"
+                                   data-caption="Acción de personal">
+                                    <i class="fa fa-file-pdf-o text-danger fs-4"></i> Sin firma
+                                </a>
+                            </p>
+                    {% else %}
+
+                         <p>
+                                <a href="/media/{{ l2.archivo }}"
+                                   data-width="2048" data-height="1380"
+                                   data-fancybox="accion_{{ l2.id }}"
+                                   data-caption="Acción de personal">
+                                    <i class="fa fa-file-pdf-o text-danger fs-4"></i> Firmado
+                                </a>
+                            </p>
+                        {% endif %}
+                    </td>
+                  <td class="text-center">
+                        {% if perms.sagest.puede_modificar_accion_personal or persona.usuario.is_superuser %}
+                            <input type="checkbox" idcon="{{ l2.id }}" class="experienciaverificar"
+                                   name="experienciaverificar"
+                                   {% if l2.estado %}checked{% endif %}>
+                        {% else %}
+                            {% if l2.estado %}
+                                <i class="fa fa-check text-success"></i>
+                            {% else %}
+                                <i class="fa fa-remove text-secondary"></i>
+                            {% endif %}
+                        {% endif %}
+                    </td>
+
+
+                    <td class="text-center align-middle">
+                        <div class="dropdown">
+                            <div class="dropdown dropleft">
+                                <a href="javascript:void(0);"
+                                   class="btn-icon btn btn-ghost btn-sm rounded-circle"
+                                   data-bs-toggle="dropdown" data-offset="-140" aria-haspopup="true"
+                                   aria-expanded="false">
+                                    <i class="fa fa-ellipsis-v" aria-hidden="true"></i>
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <span class="dropdown-header"><i class="fa fa-cogs"></i> Acciones</span>
+                                    <li>
+                                        <a class="dropdown-item"
+                                           href="javascript:void(0)"
+                                           onclick="formModalBase('{{ l2.id|encrypt }}','Editar acción','editaccionpersonal_old','modal-lg')">
+                                            <i class="fa fa-edit dropdown-item-icon"></i> Editar
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item"
+                                           href="javascript:void(0)"
+                                           onclick="eliminarajax('{{ l2.id|encrypt }}','Acción: {{ l2 }}','delaccionpersonal_old')">
+                                            <i class="fa fa-trash-o dropdown-item-icon"></i> Eliminar
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}

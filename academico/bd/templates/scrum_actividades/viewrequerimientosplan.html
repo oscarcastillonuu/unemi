@@ -1,0 +1,170 @@
+{% extends 'scrum_actividades/basescrum.html' %}
+{% load sga_extras %}
+{% block atras %}{{ request.path }}?action=planificaciones{% endblock %}
+{% block extraheading %}
+    <script type="text/javascript">
+        $(function () {
+            $("select").select2({minimumResultsForSearch: 5 });
+
+            $("#prioridad").change(function () {
+                $("#searchinput").val("");
+                location.href = `{{ request.path }}?action={{ action }}&idp={{ plan.id|encrypt }}&prio=${$(this).val()}`;
+            });
+
+            $(".reporteexcel").click(function() {
+                bloqueointerface();
+                $.ajax({
+                    type: "GET",
+                    url: "{{ request.path }}",
+                    data: {"action": "reporteexcel", "idp": "{{ plan.id|encrypt }}", "s": $("#searchinput").val(), "prio": $("#prioridad").val() },
+                    success: function(data) {
+                        $.unblockUI();
+                        if (data.result=='ok'){
+                            location.href = data.archivo;
+                        } else {
+                            $.unblockUI();
+                            if(data.swalType == 'warning')
+                                mensajeWarningSwal(data.titulo, data.mensaje);
+                            else
+                                mensajeErrorSwal(data.titulo, data.mensaje);
+                        }
+                    },
+                    error: function() {
+                        $.unblockUI();
+                        mensajeErrorSwal("No se puede consultar", "Error al enviar los datos");
+                    },
+                    dataType: "json"
+                });
+            });
+        });
+    </script>
+{% endblock %}
+{% block subtitle %}Requerimientos recibidos{% endblock %}
+{% block buttons_action %}
+    <a href="javascript:;" onclick="formModalBase('{{ plan.id|encrypt }}','Adicionar Requerimiento','addrequerimiento', '', 'modal-xl')" class="btn btn-success"><i class="fa fa-plus"></i> Adicionar</a>
+    <a href="javascript:;" class="btn btn-cian-opacity reporteexcel" data-bs-toggle="tooltip" title="Exportar reporte en excel dependiendo del filtro actual"><i class="fa fa-print"></i> Exportar Consulta | {{ total }}</a>
+{% endblock %}
+{% block content %}
+    <form method="GET" class="form-row justify-content-end py-0">
+        <div class="col-6 col-md-4 col-lg-3 pe-md-2 pb-2">
+            <select name="prioridad" id="prioridad">
+                <option value="">Todos</option>
+                {% for pr in prioridades %}
+                    <option value="{{ pr.0 }}" {% if pr.0 == prioridad %}selected {% endif %}>{{ pr.1|lower|capfirst }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-6">
+            <div class="input-group">
+                <input type="hidden" name="action" value="{{ action }}">
+                <input type="hidden" name="idp" value="{{ plan.id|encrypt }}">
+                <input class='searchinput form-control' type='text' id='searchinput' value='{{ s }}'
+                       autocomplete="off" name="s"
+                       placeholder="Buscar por procedimiento..."/>
+                <div class="input-group-append">
+                    <button class="btn btn-primary-old" type="submit" id="search"><i
+                            class="fa fa-search"></i></button>
+                    {% if s %}
+                        <a href="{{ request.path }}?action={{ action }}&idp={{ plan.id|encrypt }}" id='allresults'
+                           class='btn btn-default'><span
+                                class="fa fa-refresh "></span>
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </form>
+    <table class='tabla_responsive table table_primary'>
+        <thead class="table-light">
+            <tr>
+                <th class="w-3">N°</th>
+                <th class="w-24">Dirección/ Gestión</th>
+                <th class="w-10">Detalle</th>
+                <th class="w-30">Requerimiento</th>
+                <th class="w-15">Adjuntos</th>
+                <th class="w-15">Comentarios</th>
+                <th class="text-center w-3"></th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for requerimiento in requerimientos %}
+            <tr>
+                <td class="text-center align-middle">{% contador_lista page forloop.counter %}</td>
+                <td class="align-middle" data-title="Dirección/ Gestión">
+                    <h6 class="mb-0">{{ requerimiento.gestion.departamento|title2 }}</h6>
+                    <p>
+                        {{ requerimiento.gestion|title2 }}
+                    </p>
+                    <p><b>Responsable:</b>
+                        <span>{{ requerimiento.responsable.nombre_completo_minus }}</span>
+                    </p>
+                </td>
+                <td class="align-middle" data-title="Detalle">
+                    <p><b>Prioridad:</b>
+                        <span class="{{ requerimiento.color_prioridad }}">{{ requerimiento.get_prioridad_display|title2 }}</span>
+                    </p>
+                    <p><b>Estado: </b>
+                        <span class="{{ requerimiento.color_estado }}">{{ requerimiento.get_estado_display }}</span>
+                    </p>
+                </td>
+                <td class="align-middle" data-title="Requerimiento">
+                    <p class="fw-semi-bold">{{ requerimiento.procedimiento|title2|truncatechars:'100'}}</p>
+                    <p>
+                        {{ requerimiento.detalle|clean_text_coma|safe|truncatechars:'100' }}
+                    </p>
+                </td>
+                <td class="align-middle" data-title="Adjuntos">
+                    {% for doc in requerimiento.documentos %}
+                        {% if doc.archivo %}
+                            <div class="arrow-content">
+                                <div class="arrow-item"></div>
+                                <div class="arrow-text">
+                                    {% if doc.tipo_archivo.formato == 'pdf' or doc.tipo_archivo.formato == 'img' %}
+                                        <a href="{{ doc.archivo.url }}" class="text-secondary lh-15" data-width="2048" data-height="1380" data-fancybox="adjunto_{{ doc.id }}" title="{{ doc.leyenda }}" data-bs-toggle="tooltip" data-caption="{{ doc.leyenda }}" data-placement="top"><i class="fa {{ doc.tipo_archivo.icon }} fs-4"></i> {{ doc.leyenda|truncatechars:25 }}</a>
+                                    {% else %}
+                                        <a href="{{ doc.archivo.url }}" target="_blank" title="{{ doc.leyenda }}" data-bs-toggle="tooltip" class="text-secondary lh-15" data-placement="top"><i class="fa {{ doc.tipo_archivo.icon }} fs-4"></i> {{ doc.leyenda|truncatechars:25 }}</a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </td>
+                <td data-title="Comentarios">
+                    {% for obs in requerimiento.incidencia.comentarios %}
+                        <div class="arrow-content">
+                            <div class="arrow-item"></div>
+                            <div class="arrow-text">
+                                {% if obs.archivo %}
+                                    {% if obs.tipo_archivo.formato == 'pdf' or obs.tipo_archivo.formato == 'img' %}
+                                        <a href="{{ obs.archivo.url }}" class="text-secondary" data-width="2048" data-height="1380" data-fancybox="adjunto_{{ obs.id }}" data-placement="top"><i class="fa {{ obs.tipo_archivo.icon }} fs-4"></i>{{ obs.observacion }}</a>
+                                    {% else %}
+                                        <a href="{{ obs.archivo.url }}" target="_blank" class="text-secondary" data-placement="top"><i class="fa {{ obs.tipo_archivo.icon }} fs-4"></i> {{ obs.observacion }}</a>
+                                    {% endif %}
+                                {% else %}
+                                    {{ obs.observacion }}
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </td>
+                <td class="text-center align-middle">
+                    <div class="dropdown dropleft">
+                        <a href="javascript:void(0);" class="btn-icon btn btn-ghost btn-sm rounded-circle" data-bs-toggle="dropdown" data-offset="-140" aria-haspopup="true" aria-expanded="false"><i class="fa fa-ellipsis-v fs-6"></i></a>
+                        <ul class="dropdown-menu pull-right" x-placement="right-start">
+                            <li><a href="javascript:void(0)" class="dropdown-item" onclick="formModalBase('{{ requerimiento.id|encrypt }}','Editar Requerimiento','editrequerimiento', '', 'modal-xl')"><span class="fa fa-edit dropdown-item-icon"></span> Editar</a></li>
+                            {% if requerimiento.estado == 1 %}
+                                <li><a href="javascript:;" title="Eliminar" class="dropdown-item" onclick="eliminarajax('{{ requerimiento.id|encrypt }}', '{{ requerimiento.procedimiento }}', 'delrequerimiento', '','¿Confirma que desea eliminar el Registro?<br>')"><span class="fa fa-trash dropdown-item-icon"></span> Eliminar</a></li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                </td>
+            </tr>
+        {% empty %}
+            <tr>
+                <td colspan="7" class="text-center">No existen registros de requerimientos</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% include 'paginacionb4.html' %}
+{% endblock %}

@@ -1,0 +1,14 @@
+{% extends 'ajaxformmodal.html' %}
+{% block extra_js %}
+    <script type="text/javascript">
+        $(function () {
+
+        });
+    </script>
+{% endblock %}
+{% block header_info %}
+    <div class="alert alert-primary" role="alert">
+        <b>Código gobierno: </b>{{ codigogobierno }}<br>
+        <b>Descripción: </b>{{ descripcion }}
+    </div>
+{% endblock %}

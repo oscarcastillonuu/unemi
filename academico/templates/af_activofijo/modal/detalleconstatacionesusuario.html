@@ -1,0 +1,39 @@
+{% load sga_extras %}
+<h5><i class="fa fa-user-tie"></i> {{ constatacion.usuariobienes.nombre_completo_minus }}</h5>
+<h5><i class="fa fa-traffic-light"></i> <span class="{{ constatacion.color_estado }}">{{ constatacion.get_estado_display|title2 }}</span></h5>
+<table class="table table_primary" style="font-size: 11px">
+    <thead>
+    <tr>
+    <th colspan="10"> Observaci&oacute;n: {{ constatacion.observacion }}</th>
+    </tr>
+    <tr>
+        <th class="w-3 text-center">N°</th>
+        <th style="width: 100px; text-align: center">Cod</th>
+        <th>Activo</th>
+        <th>Ub. anterior</th>
+        <th>Ub. Actual</th>
+        <th style="width: 40px; text-align: center">Encontrado</th>
+        <th style="width: 40px; text-align: center">Uso</th>
+        <th style="width: 40px; text-align: center">Trasp.</th>
+        <th style="width: 100px;">Estado</th>
+        <th style="width: 100px;">Obs.</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for d in constatacion.activos_constatados %}
+        <tr class="normal">
+            <td class="text-center">{{ forloop.counter }}</td>
+            <td> <b>Gob.:</b>{{ d.activo.codigogobierno }}<br>
+            <b>Int.:</b> {{ d.activo.codigointerno }}</td>
+                    <td> {{ d.activo.descripcion }}</td>
+            <td> {{ d.ubicacionanterior }}</td>
+            <td> {{ d.ubicacionbienes }}</td>
+            <td style="text-align: center">{% if d.encontrado %}<i class="fa fa-check"></i>{% endif %}</td>
+            <td style="text-align: center">{% if d.enuso %}<i class="fa fa-check"></i>{% endif %}</td>
+            <td style="text-align: center">{% if d.requieretraspaso %}<i class="fa fa-check"></i>{% endif %}</td>
+            <td>{{ d.estadoactual|title2 }}</td>
+            <td>{{ d.observacion }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>

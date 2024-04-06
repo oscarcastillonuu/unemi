@@ -1,0 +1,122 @@
+{% extends "ajaxform.html" %}
+{% load humanize %}
+{% load sga_extras %}
+{% block extraheading %}
+    <script src="https://cdn.ckeditor.com/ckeditor5/39.0.0/classic/ckeditor.js"></script>
+    <script type="text/javascript">
+        {#$(document).ready(function() {#}
+        {#    var today = new Date(2023, 5, 1);#}
+        {#    var month = today.getMonth() + 0; // Se agrega 1 porque los meses se indexan desde 0#}
+        {#    var year = today.getFullYear();#}
+        {#    // Establecer el valor mínimo y máximo del campo de fecha para el mes actual#}
+        {#    var minDate = year + '-' + ('0' + month).slice(-2) + '-01';#}
+        {#    var maxDate = year + '-' + ('0' + month).slice(-2) + '-31';#}
+        {##}
+        {#    $('#id_fecha').attr('min', minDate);#}
+        {#    $('#id_fecha').attr('max', maxDate);#}
+        {# });#}
+        $(document).ready(function() {
+
+            try {
+                $('textarea').each(function () {
+                    //CKEDITOR.replace(this.name);
+
+                    CKEDITOR.replace(this.name, {
+                        // Otras opciones de configuración...
+                        on: {
+                            paste: function(event) {
+                                // Filtra el contenido pegado para permitir solo párrafos y listas
+                                var plainText = event.data.dataValue.replace(/<(?!p|\/p|ul|\/ul|li|\/li)[^>]+>/g, '');
+                                event.data.dataValue = plainText;
+                            }
+                        }
+                    });
+
+                });
+            } catch (err){
+                console.error(err.message);
+            }
+
+            $('#id_fecha').on('change', function (e) {
+                let val = $(this).val().split('-')[1];
+                if (val === '{{ mBitacora }}'){
+                    $('#fieldset_fecha .help-text').html('').hide();
+                } else {
+                    $('#fieldset_fecha .help-text').html('El mes seleccionado es distinto al mes de la bitácora.').show();
+                    $(this).val('');
+                }
+                // setTimeout(function () {}, 6000)
+            });
+
+            $("#id_titulo, #id_descripcion, #id_hora, #id_horafin").addClass("validate[required]");
+            $("select").select2({width: '100%'});
+            ItemsDisplay = function (item) {
+                if (item.name) {
+                    return $('<span>' + item.name + '</span>');
+                }
+            };
+            {#$('#id_persona').trigger('change');#}
+            {#$('#id_persona').val(null).trigger('change');#}
+            $("#id_persona").select2({
+                {#placeholder: "Buscar Servidor",#}
+                allowClear: false,
+                multiple: true,
+                width: '100%',
+                ajax: {
+                    url: function (params) {
+                        return "{{ request.path }}?action=buscarpersonas&id={{ cabid }}&q=" + params.term;
+                    },
+                    dataType: 'json',
+                    delay: 400,
+                    data: function (params) {
+                        return {
+                            q: params.term,
+                            page: params.page
+                        };
+                    },
+                    processResults: function (data, params) {
+                        params.page = params.page || 1;
+                        return {
+                            results: data.results,
+                            pagination: {
+                                more: (params.page * 30) < data.total_count
+                            }
+                        };
+                    },
+                    cache: true
+                },
+                escapeMarkup: function (markup) {
+                    return markup;
+                },
+                minimumInputLength: 1,
+                templateResult: ItemsDisplay,
+                templateSelection: ItemsDisplay
+            }).on("select2:select", function (evt) {
+                $("#id_persona").attr({"value": (evt.params.data.id)});
+            });
+        });
+    </script>
+{% endblock %}
+{% block atras %}/pro_cronograma?action=detallebitacora&idbitacora={{ mesbitacora.id|encrypt }}{% endblock %}
+{% block titulo %}{{ title }}:
+    <h6>{{ mesbitacora.nombre }}<br>
+        {% if mesbitacora.criterio.criteriodocenciaperiodo %}
+            {{ mesbitacora.criterio.criteriodocenciaperiodo.criterio }}
+        {% elif mesbitacora.criterio.criterioinvestigacionperiodo %}
+            {{ mesbitacora.criterio.criterioinvestigacionperiodo.criterio }}
+        {% elif mesbitacora.criterio.criteriogestionperiodo %}
+            {{ mesbitacora.criterio.criteriogestionperiodo.criterio }}
+        {% endif %}
+    </h6>
+{% endblock %}
+{#{% if p == 1 %}#}
+{% block formaction %}/pro_cronograma?action=detallebitacora&idbitacora={{ mesbitacora.id|encrypt }}{% endblock %}
+{#{% block form-type %}form-vertical{% endblock %}#}
+{% block formdestination %}/pro_cronograma?action=detallebitacora&idbitacora={{ mesbitacora.id|encrypt }}{% endblock %}
+{% block formwidth %}form-x{% endblock %}
+{% block formextra %}
+    <input type='hidden' name='action' value='addbitacora'/>
+    <input type='hidden' name='id' value='{{ mesbitacora.id|encrypt }}'/>
+{% endblock %}
+{% block formback %}/pro_cronograma?action=detallebitacora&idbitacora={{ mesbitacora.id|encrypt }}{% endblock %}
+{% block buttonname %}Guardar{% endblock %}

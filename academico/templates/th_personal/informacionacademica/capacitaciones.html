@@ -1,0 +1,187 @@
+{% extends 'th_personal/base_menu.html' %}
+{% load sga_extras %}
+{% block heading_ext %}
+{% endblock %}
+{% block extraJs_ext %}
+    <script>
+        $(function () {
+            $('.capacitacionverificar').click(function () {
+                var id = $(this).attr('idcon');
+                var check = $(this).is(':checked');
+                ActualizarEstadoExt(id, 'verificarcapacitacion', check)
+            });
+        })
+    </script>
+{% endblock %}
+{% block subtitle %}
+    Listado de capacitaciones registradas
+{% endblock %}
+{% block buttons_action %}
+    <a href="javascript:void(0)"
+       onclick="formModalBase('{{ administrativo.id|encrypt }}','Adicionar capacitacion','addcapacitacion')"
+       class="btn btn-success">
+        <i class="fa fa-plus"></i> Adicionar
+    </a>
+{% endblock %}
+{% block content %}
+    <div class="row">
+        <div class="col-lg-4">
+            <div class="card mb-2">
+                <!-- Card Body -->
+                <div class="card-body">
+                    <span class="fs-6 text-uppercase fw-semi-bold">Total de registros</span>
+                    <div class="mt-0 d-flex justify-content-between align-items-center">
+                        <div class="lh-1">
+                            <h2 class="h1 fw-bold mb-1 text-secondary">{{ paging.count }}</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card mb-2">
+                <!-- Card Body -->
+                <div class="card-body">
+                    <span class="fs-6 text-uppercase fw-semi-bold">Reporte de capacitaciones</span>
+                    <div class="mt-0 d-flex justify-content-between align-items-center">
+                        <div class="lh-1">
+                            <h2 class="h1 fw-bold mb-1 text-success">
+                                {% if reporte_capacitaciones_persona %}
+                                    <a href="javascript:;" tipos="{{ reporte_capacitaciones_persona.tiporeporte }}"
+                                       nhref="/reportes?action=run&n={{ reporte_capacitaciones_persona.nombre }}&persona={{ administrativo.id }}"
+                                       class="reportedirecto btn btn-success reporte tu"> <i class='fa fa-download'></i>
+                                        Descargar</a>
+                                {% endif %}
+                            </h2>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="">
+        <table class="table table_primary tabla_responsive">
+            <thead class="table-light">
+            <tr>
+                <th class="text-center w-15">Fechas</th>
+                <th>Institución</th>
+                <th>Evento</th>
+                <th>Detalle</th>
+                <th>Aprobado por UATH</th>
+                <th class="w-3"></th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for l in listado %}
+                <tr>
+                    <td class="text-center w-15">
+                        <p>
+                            <b>Inicio: </b>{{ l.fechainicio|date:'d-m-Y' }}
+                        </p>
+                        <p>
+                            <b>Fin: </b>{{ l.fechafin|date:'d-m-Y' }}
+                        </p>
+                    </td>
+                    <td class="w-25">
+                        <p>{{ l.institucion }}</p>
+                    </td>
+                    <td class="w-25">
+                        <p>{{ l.nombre }}</p>
+                    </td>
+                    <td class="w-25">
+                        <div class="row">
+                            <div class="col">
+                                <div class="d-flex fs-35">
+                                    <div class="ms-2">
+                                        <div class="arrow-content">
+                                            <div class="arrow-item"></div>
+                                            <div class="arrow-text">
+                                                Horas:
+                                                {{ l.horas|floatformat:2 }}
+                                            </div>
+                                        </div>
+
+                                        <div class="arrow-content">
+                                            <div class="arrow-item"></div>
+                                            <div class="arrow-text">
+                                                Documento:
+                                                {% if l.archivo %}
+                                                    <a title="Visualizar archivo"
+                                                       data-bs-toggle="tooltip"
+                                                       data-width="2048" data-height="1380"
+                                                       data-fancybox="archivo_{{ l.id }}"
+                                                       data-caption="Documento : {{ l.archivo.name }}"
+                                                       href="{{ l.download_link }}"
+                                                       class=""><i class="fa fa-file-pdf-o fs-4 text-danger"></i></a>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-auto text-center me-2 v-align-middle justify-content-center">
+                                <a href="javascript:void(0)"
+                                   onclick="formModalBase('{{ l.id }}','Detalle de capacitación','detallecapacitacion','','modal-xl',false)"
+                                   cid="{{ c.id }}"
+                                   class="text-info"
+                                   data-bs-toggle="tooltip" data-bs-placement="top" title=""
+                                   data-bs-original-title="Para mas información dar click aquí!">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" fill="currentColor"
+                                         class="bi bi-info-circle-fill me-2" viewBox="0 0 16 16">
+                                        <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm.93-9.412-1 4.705c-.07.34.029.533.304.533.194 0 .487-.07.686-.246l-.088.416c-.287.346-.92.598-1.465.598-.703 0-1.002-.422-.808-1.319l.738-3.468c.064-.293.006-.399-.287-.47l-.451-.081.082-.381 2.29-.287zM8 5.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2z"></path>
+                                    </svg>
+                                </a>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="w-25">
+                            <input type="checkbox" idcon="{{ l.id }}" class="capacitacionverificar" name="capacitacionverificar"
+                                   {% if l.verificado %}checked{% endif %}>
+                    </td>
+                    <td class="text-center align-middle">
+                        {% if not l.verificado %}
+                            {% if not l.tienecapacitacioncronograma %}
+                                <div class="dropdown">
+                                    <div class="dropdown dropleft">
+                                        <a href="javascript:void(0);"
+                                           class="btn-icon btn btn-ghost btn-sm rounded-circle"
+                                           data-bs-toggle="dropdown" data-offset="-140" aria-haspopup="true"
+                                           aria-expanded="false">
+                                            <i class="fa fa-ellipsis-v" aria-hidden="true"></i>
+                                        </a>
+                                        <ul class="dropdown-menu">
+                                            <span class="dropdown-header"><i class="fa fa-cogs"></i> Acciones</span>
+                                            <li>
+                                                <a class="dropdown-item"
+                                                   href="javascript:void(0)"
+                                                   onclick="formModalBase('{{ l.id|encrypt }}','Editar {{ l }}','editcapacitacion')">
+                                                    <i class="fa fa-edit dropdown-item-icon"></i> Editar
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item"
+                                                   href="javascript:void(0)"
+                                                   onclick="eliminarajax('{{ l.id|encrypt }}','{{ l.nombre }}','delcapacitacion')">
+                                                    <i class="fa fa-trash-o dropdown-item-icon"></i> Eliminar
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        {% endif %}
+                    </td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td class="text-center" colspan="8">Sin registros existentes</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        {% include 'paginacionb4.html' %}
+    </div>
+{% endblock %}

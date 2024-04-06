@@ -1,0 +1,232 @@
+{% extends "af_activofijo/base_activofijo.html" %}
+{% block atras %}{{ request.path }}{% endblock %}
+{% load sga_extras %}
+{% block extraJs %}
+    <script src="/static/adicionalesjs/formquestionb4.js?0.24"></script>
+    <link rel="stylesheet" href="/static/css/bloques.css">
+    <script>
+        $(function () {
+            $("select").select2({width: '100%', 'placeholder': 'Seleccione una opción'})
+        })
+
+        function formModal(idp, id, text, action, dimension = 'modal-lg', footer = true, idex = '') {
+            bloqueointerface()
+            $.ajax({
+                type: "GET",
+                url: `{{ request.path }}`,
+                data: {
+                    'action': action,
+                    'id': id,
+                    'idp': idp,
+                    'idex': idex,
+                },
+                success: function (data) {
+                    $.unblockUI();
+                    footer ? $('#footermodal').hide() : $('#footermodal').show();
+                    $('#wmodal').removeClass('modal-lg modal-sm modal-xl modal-md modal-fullscreen').addClass(dimension)
+                    if (data.result === true) {
+                        $('#itemspanel .panelbody').html(data.data);
+                        $('#itemspanel .paneltitle').html(`<i class="fa fa-list-ol"></i> ${text.toUpperCase()}`);
+                        $("#itemspanel").modal({backdrop: 'static'}).modal('show');
+                    } else {
+                        mensajeDanger(data.message);
+                    }
+                },
+                error: function () {
+                    $.unblockUI();
+                    mensajeDanger("Error de conexión.");
+                },
+                dataType: "json"
+            });
+        }
+    </script>
+    <style>
+        .btn-close {
+            margin: -8px -3px -0rem auto !important;
+        }
+    </style>
+{% endblock %}
+{% block subtitle %}Listado de activos que disponen de informe de baja.{% endblock %}
+{% block filtros %}
+    <input type="hidden" name="action" value="{{ action }}">
+
+    <div class="mb-1">
+        <label for=""><i class="fa fa-traffic-light"></i> Estado:</label>
+        <select name="estado">
+            <option value="0">Todos</option>
+            <option value="1" {% if estado == 1 %}selected{% endif %}>Pendiente</option>
+            <option value="2" {% if estado == 2 %}selected{% endif %}>Firmado</option>
+        </select>
+    </div>
+{% endblock %}
+{% block content %}
+    <div class="row d-flex">
+        <div class="col-6">
+            <a href="javascript:void(0)"
+               onclick="formModalBase('','Firmar informes de baja pendientes','firmarinformebajamasivo','True','modal-md')"
+               class='btn btn-cian-opacity'><i class="fa fa-signature"></i> Firmar informes masivo</a>
+        </div>
+        <div class='col-6 text-end'>
+            <p>
+                Total Firmados: <span class="badge bg-success">{{ t_firmados }}</span> |
+                Total Pendientes: <span class="badge bg-secondary">{{ t_pendientes }}</span> |
+                Total: <span class="badge bg-primary">{{ paging.count }}</span>
+            </p>
+        </div>
+    </div>
+    <div class="card mb-4">
+        <div class="card-body border-top border-6 rounded-3 border-dark-info">
+            <div class="">
+                <table class="table table_primary tabla_responsive">
+                    <thead>
+                    <tr class="table-light cabecera-fija">
+                        <th class="text-center w-5">N°</th>
+                        <th class="w-25"> Activo</th>
+                        <th class="w-30"> Responsables</th>
+                        <th class="text-center w-30"> Documento firmado</th>
+                        <th class="text-center w-3"></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for list in listado %}
+                        <tr>
+                            <td class="w-5 text-center align-middle">{{ forloop.counter }}</td>
+                            <td class="w-15 align-middle">
+                                <div class="row">
+                                    <div class="col">
+                                        <p class="mb-1">
+                                            <b>Modelo: </b>{{ list.informe.activofijo.modelo }}
+                                            {% if list.informe.activofijo.statusactivo == 2 %}
+                                                | <span class="badge bg-danger" title="Baja">Baja</span>
+                                            {% endif %}
+                                        </p>
+                                        {% if list.informe.activofijo.codigogobierno %}
+                                            <p>
+                                                <b>Cod. Gobierno: </b>{{ list.informe.activofijo.codigogobierno }}
+                                            </p>
+                                        {% endif %}
+                                        {% if list.codigointerno %}
+                                            <p>
+                                                <b>Cod. Interno: </b>{{ list.informe.activofijo.codigointerno }}
+                                            </p>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-auto text-center me-2 v-align-middle justify-content-center">
+                                        <a href="javascript:void(0)"
+                                           onclick="formModal('','{{ list.informe.activofijo.id }}','Detalle de activo','detalle_activo','modal-xl',false)"
+                                           class=""
+                                           data-bs-toggle="tooltip" data-bs-placement="top" title=""
+                                           data-bs-original-title="Detalle de activo">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" fill="currentColor"
+                                                 class="bi bi-info-circle-fill me-2" viewBox="0 0 16 16">
+                                                <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm.93-9.412-1 4.705c-.07.34.029.533.304.533.194 0 .487-.07.686-.246l-.088.416c-.287.346-.92.598-1.465.598-.703 0-1.002-.422-.808-1.319l.738-3.468c.064-.293.006-.399-.287-.47l-.451-.081.082-.381 2.29-.287zM8 5.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2z"></path>
+                                            </svg>
+                                        </a>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="">
+                                <p>
+                                    <b>Director: </b>{{ list.responsablefirma.personadepartamento.nombre_completo_minus }}
+                                </p>
+                                <p>
+                                    <b title="Responsable del informe" data-bs-toggle="tooltip">
+                                        Responsable : </b> {{ list.informe.responsable.nombre_completo_minus }}
+                                </p>
+                            </td>
+                            <td class="text-center">
+                             <a href="{{ list.archivo.url }}"
+                                   class="btn {{ list.estado_color.color }} rounded-pill fs-5"
+{#                                   title="Visualizar Certificado"#}
+                                   data-bs-toggle="tooltip"
+                                   data-width="2048" data-height="1380"
+                                   data-fancybox="certificado_{{ list.id }}"
+                                   data-caption="Informe de baja de: {{ list.informe.activofijo.codigogobierno }}">
+                                    {{ list.estado_color.text }} | <img src="/static/logos/editar_posgrado.svg"
+                                                                      width="20px" height="20px">
+                                </a>
+                            </td>
+                            <td class="text-center w-5">
+                                <div class="dropdown">
+                                    <div class="dropdown dropleft">
+                                        <a href="javascript:void(0);"
+                                           class="btn-icon btn btn-ghost btn-sm rounded-circle"
+                                           data-bs-toggle="dropdown" data-offset="-140" aria-haspopup="true"
+                                           aria-expanded="false">
+                                            <i class="fa fa-ellipsis-v" aria-hidden="true"></i>
+                                        </a>
+                                        <ul class="dropdown-menu">
+                                            {% if list.responsable_director.personadepartamento.id == persona.id %}
+                                                <li>
+                                                    <a href="javascript:void(0);" class="dropdown-item"
+                                                       onclick="formModalBase('{{ list.id|encrypt }}','Firmar informe de baja - {{ list.informe.activofijo.codigogobierno }}','firmarinformebaja','True', 'modal-md')">
+                                                        <i class="fa fa-signature dropdown-item-icon"></i> Firmar
+                                                        informe baja
+                                                    </a>
+                                                </li>
+                                            {% endif %}
+                                            {% if persona.id == list.informe.responsable.id %}
+                                                <li>
+                                                    <a href="javascript:void(0)"
+                                                       class="dropdown-item"
+                                                       onclick="eliminarajax('{{ list.id|encrypt }}','Eliminar acta de constatación','delacta')">
+                                                        <i class="fa fa-trash-o dropdown-item-icon"></i> Eliminar informe baja
+                                                    </a>
+                                                </li>
+                                            {% endif %}
+                                            <li>
+                                                <a href="javascript:void(0)"
+                                                   class="dropdown-item"
+                                                   onclick="formModal('','{{ list.id|encrypt }}','Historial de firmas de informe','historialfirmas','modal-lg',false)">
+                                                    <i class="fa fa-clock-o dropdown-item-icon"></i> Historial de firmas
+                                                </a>
+                                            </li>
+                                        </ul>
+
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            {% empty %}
+                            <td colspan="8" style="text-align: center">NO TIENE ACTIVOS</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+                <div class="card-footer border-top-0">
+                    {% include 'paginacionb4.html' %}
+                </div>
+
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block moreblock %}
+    <div class="modal fade static" id="itemspanel" style="display: none;">
+        <div class="modal-dialog modal-dialog-centered modal-lg" role="document" id="wmodal">
+            <div class="modal-content" style="border-radius: 17px!important;">
+                <div class="modal-header">
+                    <h4><b class="paneltitle">FORMULARIO MODAL</b></h4>
+                    <button type="button" class="btn-close btn-cerrar-modal fs-5" data-toggle="modal"
+                            data-bs-dismiss="modal" aria-label="Close">
+                        X
+                    </button>
+                </div>
+                <div class="modal-body" style="padding: 1.5%;">
+                    <form class="form-horizontal form-modal" autocomplete="off" method="post"
+                          enctype="multipart/form-data" action="{{ request.path }}">
+                        {% csrf_token %}
+                        <div class="row panelbody">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer" id="footermodal">
+                    <button type="button" class="btn btn-default" data-bs-dismiss="modal" id="cerrar"><i
+                            class="fa fa-times"></i> Cerrar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

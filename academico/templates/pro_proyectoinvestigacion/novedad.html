@@ -1,0 +1,106 @@
+{% load humanize %}
+{% block heading %}
+    <script type="text/javascript">
+        $(function() {
+            $('[data-bs-toggle="tooltip"]').tooltip();
+        });
+    </script>
+{% endblock %}
+{% for propuesta in propuestas %}
+    <table class="table table-bordered" >
+        <thead>
+        <tr>
+            <th style="vertical-align: middle; width: 20%;">Título del Proyecto:</th>
+            <td style="text-align: justify; width: 80%;">{{ propuesta.titulo }}</td>
+        </tr>
+        </thead>
+    </table>
+    {% if propuesta.integrantes_director_codirector_novedad %}
+        <table class="table table-bordered">
+            <thead>
+            <tr>
+                <th colspan="6">Verificación de Investigadores</th>
+            </tr>
+            <tr>
+                <th style="width: 3%; text-align: center; ">#</th>
+                <th style="width: 13%; text-align: center; ">Rol</th>
+                <th style="width: 10%; text-align: center; ">Identificación</th>
+                <th style="width: 39%; text-align: center; ">Nombres y Apellidos</th>
+                <th style="width: 10%; text-align: center;  ">Acreditado</th>
+                <th style="width: 25%; text-align: center; ">Observaciones</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for detalle in propuesta.integrantes_director_codirector_novedad %}
+                <tr>
+                    <td style="text-align: right">
+                        {{ forloop.counter }}
+                    </td>
+                    <td style="text-align: center">
+                        {{ detalle.get_funcion_display }}
+                    </td>
+                    <td style="text-align: center">
+                        {{ detalle.persona.identificacion }}
+                    </td>
+                    <td>
+                        {{ detalle.persona.nombre_completo_inverso|safe }}
+                    </td>
+                    <td style="text-align: center;">
+                        {% if detalle.estadoacreditado == 2 %}
+                            <i class="fa fa-check-circle" data-bs-toggle="tooltip" data-bs-placement="top" title="Acreditado" style="color: green;"></i>
+                        {% elif detalle.estadoacreditado == 3 %}
+                            <i class="fa fa-times" data-bs-toggle="tooltip" data-bs-placement="top" title="No acreditado" style="color: red"></i>
+                        {% else %}&nbsp;{% endif %}
+                    </td>
+                    <td style="text-align: justify">
+                        {{ detalle.observacion|default_if_none:'' }}
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+    {% if propuesta.estadodocumentofirmado == 3 or propuesta.estadodocumentofirmado == 4 %}
+        <table class="table table-bordered">
+            <thead class="table-light">
+            <tr>
+                <th colspan="5">Verificación de Documentos</th>
+            </tr>
+            <tr>
+                <th style="width: 2%; text-align: center; ">#</th>
+                <th style="width: 50%; text-align: center; ">Nombre del documento</th>
+                <th style="width: 10%; text-align: center;  ">Validado</th>
+                <th style="width: 38%; text-align: center; ">Observaciones</th>
+            </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td style="text-align: right">1</td>
+                    <td style="text-align: justify">Formulario Formato de inscripción de Proyecto firmado</td>
+                    <td style="text-align: center;">
+                        {% if propuesta.estadodocumentofirmado == 2 %}
+                            <i class="fa fa-check-circle" data-bs-toggle="tooltip" data-bs-placement="top" title="Validado" style="color: green;"></i>
+                        {% elif propuesta.estadodocumentofirmado == 3 or propuesta.estadodocumentofirmado == 4 %}
+                            <i class="fa fa-times" data-bs-toggle="tooltip" data-bs-placement="top" title="No validado" style="color: red"></i>
+                        {% else %}&nbsp;{% endif %}
+                    </td>
+                    <td style="text-align: justify">
+                        {{ propuesta.observaciondocumentofirmado|default_if_none:'' }}
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    {% endif %}
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th colspan="5">Observaciones generales {% if propuesta.archivonovedad %}<a target="_blank" href="{{ propuesta.archivonovedad.url }}" class="btn btn-success" data-bs-toggle="tooltip" data-bs-placement="top" title="Descargar Archivo Novedades"><i class="fa fa-download"></i> Descargar</a>{% endif %}</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td style="text-align: justify">{{ propuesta.observacion }}</td>
+            </tr>
+        </tbody>
+    </table>
+{% endfor %}

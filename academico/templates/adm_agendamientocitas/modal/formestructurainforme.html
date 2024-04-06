@@ -1,0 +1,312 @@
+{% load sga_extras %}
+<style>
+    .select2-container--default .select2-selection--multiple .select2-selection__choice {
+        background-color: #dff5ff
+        !important;
+        border: 1px solid #03a9f4
+        !important;
+    }
+
+    .dropify-wrapper .dropify-message span.file-icon {
+        font-size: 25px;
+        color: #CCC;
+    }
+</style>
+
+<form id="estructuraForm">
+    <input type="hidden" name="id" value="{{ filtro.id|encrypt }}"/>
+    <input type="hidden" name="action" value="addestructurainforme"/>
+    <input type="hidden" name="idpadre" value="{{ idpadre|encrypt }}"/>
+
+    <div class="row">
+        {% for field in form %}
+            {% if field.field.widget.attrs.separator %}
+                {% if field.field.widget.attrs.blanklinebefore %}
+                    <!-- Add any content you want before the separator -->
+                {% endif %}
+                <div style="width: 100%; height: max-content">
+                    <h6 style="width:100%; text-align:left; border-bottom: 1px solid #98a3ab; line-height:0.1em; margin:10px 0 20px;">
+                        <span style="padding:0 10px; background: #f5f5f5;">
+                            {% if field.field.widget.attrs.separatortitle %}
+                                {{ field.field.widget.attrs.separatortitle }}
+                            {% endif %}
+                        </span>
+                    </h6>
+                </div>
+            {% endif %}
+            <div id="fieldset_{{ field.name }}" class="col-lg-{% if field.field.widget.attrs.col %}{{ field.field.widget.attrs.col }}{% else %}12{% endif %} col-sm-9 col-8"
+                 style="float: left;">
+                <label class="control-label pr-2" for="id_{{ field.name }}">
+                    <b>{{ field.label }}&nbsp;:</b></label>
+                <div style="width:{% if not field.field.widget.attrs.controlwidth %}100%{% else %}{{ field.field.widget.attrs.controlwidth }}{% endif %};">
+                    {{ field }}
+                    <p class="help-text">{{ field.help_text }} </p>
+                    <p id="errorMessage{{ field.name }}" class="fs-6 text-danger p-1 py-0 errorMessage"></p>
+                </div>
+            </div>
+        {% endfor %}
+        <div class="mt-4 col-sm-3 col-lg-2 col-4" style="text-align: left">
+            <button type="button" id="submit" class="btn btn-success w-100"><i class="fa fa-check-circle"></i> Guardar</button>
+        </div>
+    </div>
+</form>
+
+<div class="row">
+    <div class="col-lg-12">
+        <table class='tabla_responsive table table_primary' width="100%" id="id_estructura">
+            <thead class="table-light">
+            <tr>
+                <th class="text-center">&nbsp; <i></i>#</th>
+                <th class="text-center">&nbsp;<b><i class="fa fa-file-text"></i> Titulo (<b id="total">{{ listado|length }}</b>)</b></th>
+                <th class="text-center">&nbsp; <i class="fa fa-file-text"></i> Tipo de Informe</th>
+                <th class="text-center">&nbsp;<i class="fa fa-eye"></i> Mostrar?</th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for list in listado %}
+                <tr id="box_{{ list.id }}">
+
+                     <td class="text-center">
+                        <h5 class="text-secondary">{{ list.orden }}</h5>
+                    </td>
+
+                    <td class="text-center">
+                        <h5 class="text-secondary">{{ list.titulo }}</h5>
+                    </td>
+
+                    <td class="text-center">
+                        <h5 class="text-secondary">{{ list.get_tipoinforme_display }}</h5>
+                    </td>
+
+                    <td class="text-center">
+                        <input type="checkbox" {% if list.activo %}checked{% endif %} name="activo" class="activar"
+                               id="activo_{{ list.id }}" data-id="{{ list.id }}">
+                    </td>
+                    <td class="text-center">
+                        <a href="javascript:void(0);"
+                           onclick="eliminarajaxl('{{ list.id|encrypt }}', 'delestructurainforme', this)"
+                           class="btn btn-mini btn-outline-danger"><i class="fa fa-trash"></i></a>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        <h6 class="text-danger">*<i class="fa fa-info-circle"></i> Los requisitos registrados se visualizarán en el servicio.*</h6>
+    </div>
+</div>
+
+<script>
+   $(function () {
+
+             {% if filtro.id != 5 %}
+
+                $("#fieldset_segmentacion").hide();
+                $("#fieldset_seccion").hide();
+
+            {% endif %}
+   });
+    $(document).ready(function () {
+        var switchery;
+        var total = {{ listado|length }};
+        var iter = false;
+
+        function setSwitchery(switchElement, checkedBool) {
+            if ((checkedBool && !switchElement.isChecked()) || (!checkedBool && switchElement.isChecked())) {
+                switchElement.setPosition(true);
+                switchElement.handleOnchange(true);
+            }
+        }
+
+        var elems = Array.prototype.slice.call(document.querySelectorAll('.js-switch'));
+        elems.forEach(function (html) {
+            switchery = new Switchery(html, {
+                size: 'small',
+                color: 'rgba(17,218,35,0.56)',
+                secondaryColor: 'rgba(218,0,7,0.74)'
+            });
+        });
+
+        $('select').select2({width: '100%'});
+         CheckActivation()
+
+        {#$('#cerrar').click(function () {#}
+        {#    if (iter) {#}
+        {#        location.reload()#}
+        {#    }#}
+        {#});#}
+
+        function CheckActivation() {
+            $('.activar').click(function () {
+                var id = $(this).attr('data-id');
+                var check = $(this).is(':checked');
+                var name = $(this).attr('name');
+                ActualizarEstado(id, 'editestructurainforme', check, name)
+            });
+        }
+
+        function ActualizarTabla(data) {
+            $('.tabla_responsive tbody').append($('<tr>', {
+                'id': `box_${data.id}`,
+                'role': 'row',
+                'class': 'odd'
+            }).append(
+                $('<td>', {
+                    'class': 'text-center'
+                }).append($('<h5>', {
+                    'class': 'text-secondary',
+                    'text': `${data.orden}`,
+                })),
+                $('<td>', {
+                    'class': 'text-center'
+                }).append($('<h5>', {
+                    'class': 'text-secondary',
+                    'text': `${data.titulo}`,
+                })), // Asegúrate de cerrar correctamente la etiqueta <h5>
+
+                $('<td>', {
+                    'class': 'text-center'
+                }).append($('<h5>', {
+                    'class': 'text-secondary',
+                    'text': `${data.tipoinforme}`,
+                })),
+                $('<td>', {
+                    'class': 'text-center'
+                }).append($('<input>', {
+                    'class': 'activar',
+                    'type': 'checkbox',
+                    'checked': data.activo,
+                    'data-id': `${data.id}`,
+                    'id': `activo_${data.id}_suffix`,
+                    'name': 'activo',
+                })),
+                $('<td>', {
+                    'class': 'text-center'
+                }).append($('<a>', {
+                    'class': 'btn btn-mini btn-outline-danger',
+                    'href': 'javascript:void(0);',
+                    'onclick': `eliminarajaxl('${data.id}', 'delestructurainforme', this)`,
+                    'html': `<i class="fa fa-trash"></i>`
+                })),
+            ));
+
+            total += 1;
+            // Limpiar campos y actualizar texto
+            iter = true
+            $("#id_tipoinforme").select2("val", "");
+            $('#id_titulo').val("");
+            $('#id_orden').val("");
+            $('#id_seccion').select2("val", "");
+            $('#id_segmentacion').select2("val", "");
+            $('#total').text(`${total}`);
+            $('#id_estructura tr .dataTables_empty').hide();
+            $('.errorMessage').empty();
+            CheckActivation();
+
+        }
+
+        function ActualizarEstado(id, action, check, name) {
+            bloqueointerface();
+            $.ajax({
+                type: "POST",
+                url: "{{ request.path }}",
+                data: {'action': action, 'id': id, 'val': check, 'name': name},
+                success: function (data) {
+                    if (data.result === true) {
+                        $.unblockUI();
+                        alertaSuccess(data.mensaje);
+                    } else {
+                        $.unblockUI();
+                        CheckError(check, id);
+                        alertaDanger(data.mensaje);
+                    }
+                },
+                error: function () {
+                    $.unblockUI();
+                    CheckError(check, id);
+                    alertaInfo("Error al enviar los datos.");
+                },
+                dataType: "json"
+            });
+            iter = true;
+        }
+
+
+
+        function CheckError(check, id) {
+            if (check) {
+                $("#activo_" + id).prop('checked', false);
+            } else {
+                $("#activo_" + id).prop('checked', true);
+            }
+        }
+
+        function limpiar(id) {
+            $('#box_' + id).empty();
+            total -= 1;
+            iter = true;
+            $('#total').text(`${total}`);
+            if (total == 0) {
+                $('.tabla_responsive tbody').append($('<tr>', {}).append(
+                    $('<td>', {'class': 'text-center dataTables_empty', 'colspan': 5}).append($('<p>', {
+                        'class': 'text-secondary',
+                        'text': `Ningún dato disponible en esta tabla`,
+                    })),
+                ));
+            }
+        }
+
+        // Evento click del botón Guardar
+        $('#submit').click(function () {
+            $.ajax({
+                type: "POST",
+                url: "{{ request.path }}",
+                data: $('#estructuraForm').serialize(),
+                success: function (data) {
+                    if (data.result === true) {
+                        alertaSuccess(data.mensaje);
+                        ActualizarTabla(data.data);
+                    } else {
+                        alertaDanger(data.mensaje);
+                    }
+                },
+                error: function () {
+                    alertaInfo("Error al enviar los datos.");
+                },
+                dataType: "json"
+            });
+        });
+
+    });
+
+    function eliminarajaxl(id, action, boton){
+        bloqueointerface();
+            $.ajax({
+                type: "POST",
+                url: "{{ request.path }}",
+                data: {'action': action, 'id': id},
+                success: function (data) {
+                    if (data.result === true) {
+                        $.unblockUI();
+                        var fila = $(boton).closest('tr');
+                        fila.remove();
+                        alertaSuccess(data.mensaje);
+                    } else {
+                        $.unblockUI();
+                        alertaDanger(data.mensaje);
+                    }
+                },
+                error: function () {
+                    $.unblockUI();
+                    alertaInfo("Error al enviar los datos.");
+                },
+                dataType: "json"
+            });
+            iter = true;
+
+    }
+</script>
+
+
+
+

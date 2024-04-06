@@ -1,0 +1,180 @@
+{% load sga_extras %}
+<input type="hidden" name="id" value="{{ id|encrypt }}"/>
+<input type="hidden" name="action" value="{{ action }}"/>
+<input type="hidden" name="ida" value="{{ activo.id|encrypt }}"/>
+<input type="hidden" name="idp" value="{{ periodo|encrypt }}"/>
+<style>
+    .check_d {
+      width: 16px;
+      height: 16px;
+    }
+</style>
+<div class="row">
+    <h5 class="my-0"><i class="fa fa-tag"></i> {{ activo }}</h5>
+    <div class="col-lg-8">
+        <div class="row">
+        {% for field in form %}
+            {% if not field.field.widget.attrs.data_checkbox %}
+                {% if field.field.widget.attrs.separator %}
+                    {% if field.field.widget.attrs.blanklinebefore %}
+                    {% endif %}
+                    <div style="width: 100%; height: max-content">
+                        <h6 style="width:100%; text-align:left; border-bottom: 1px solid #98a3ab; line-height:0.1em; margin:10px 0 20px;">
+                        <span style="padding:0 10px; background: #f5f5f5;">
+                            {% if field.field.widget.attrs.separatortitle %}
+                                {{ field.field.widget.attrs.separatortitle }}
+                            {% endif %}
+                        </span>
+                        </h6>
+                    </div>
+                {% endif %}
+                <div id="fieldset_{{ field.name }}" class="col-md-12 col-lg-{% if field.field.widget.attrs.col %}{{ field.field.widget.attrs.col }}{% else %}12{% endif %}"
+                     style="float: left; padding-right: 10px;">
+                    <h5 class="control-label pr-2 mb-0 p-1" for="id_{{ field.name }}">
+                        {{ field.label }}&nbsp;:</h5>
+                    <div style="width:{% if not field.field.widget.attrs.controlwidth %}100%{% else %}{{ field.field.widget.attrs.controlwidth }}{% endif %};">
+                        {{ field }}
+                        <p class="help-text">{{ field.help_text }} </p>
+                        <p id="errorMessage{{ field.name }}" class="fs-6 text-danger p-1 py-0"></p>
+                    </div>
+                </div>
+            {% endif %}
+        {% endfor %}
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <table class="table table-bordered table-responsive mt-1">
+            <thead class="table-light">
+            <tr>
+                <th style="text-align: center">&nbsp;<b><i class="fa fa-location-arrow"></i> Items
+                    (<b id="total">4</b>)</b></th>
+                <th class="text-center"><i class="fa fa-check"></i></th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for field in form %}
+                 {% if field.field.widget.attrs.data_checkbox %}
+                    <tr id="box_{{ field.id }}">
+                        <td class="text-center align-middle">
+                            <h6 class="mb-0" style="font-size: 13px">{{ field.label }}</h6>
+                        </td>
+                        <td class="text-center">
+                            {{ field }}
+                        </td>
+                    </tr>
+                {% endif %}
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</div>
+<div class="row">
+    <div class="col-lg-8">
+        <h6 class="text-danger mb-0">*<i class="fa fa-info-circle"></i>  Recuerde que una vez constatado podra editar su constatación según requiera.</h6>
+    </div>
+     <div class="col-lg-4 text-end mt-2">
+          <button type="submit" id="submit" class="btn btn-orange fs-5"><i class="fa fa-check-circle"></i> Guardar</button>
+            <a href="javascript:void(0)" class="btn btn-cian-secondary fs-5" data-bs-dismiss="modal"> <i
+                        class="fa fa-close"></i> Cancelar</a>
+    </div>
+</div>
+<script>
+    $(function () {
+        const cbPersona = $('#id_usuariobienes');
+        const traspaso= $('#id_requieretraspaso');
+        const encontrado= $('#id_encontrado');
+        encontradoCheck(encontrado)
+        traspasoCkeck(traspaso)
+
+        $('select').select2({width: '100%', minimumResultsForSearch: -1});
+        $("#id_ubicacionbienes").select2({width:"100%"})
+        $.fn.select2.defaults.set('language', 'es');
+
+        traspaso.change(function (){
+           traspasoCkeck($(this))
+        })
+         encontrado.change(function (){
+            encontradoCheck($(this))
+        })
+        function formatRepo(repo) {
+            if (repo.loading) {
+                return 'Buscando..'
+            }
+            var option = '';
+            if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+                option = $(`<b>${repo.text}</b>`);
+            } else {
+                option = $(`<div class="wrapper container"><div class="row"><div class="col-lg-2 text-center"><img src="${repo.foto}" width="50px" height="50px" class="w-25px rounded-circle me-2"></div><div class="col-lg-10 text-left"><b>Documento:</b> ${repo.documento}<br><b>Nombres:</b> ${repo.text}</div></div></div>`);
+            }
+            return option;
+        }
+
+        ItemsDisplayPersonas = function (item) {
+            if (item.text && item.documento) {
+                return $(`<img src="${item.foto}" width="25px" height="25px" class="w-25px rounded-circle me-2"><span>${item.text}</span>`);
+            } else if (item) {
+                return item.text;
+            } else {
+                return 'Consultar personas';
+            }
+        };
+
+        cbPersona.select2({
+            width: '100%',
+            placeholder: "Consultar Personas",
+            allowClear: true,
+            ajax: {
+                url: function (params) {
+                    return `{{ reques.path }}?action=buscarpersonas&q=${params.term}&tipo=distributivos, administrativos`;
+                },
+                dataType: 'json',
+                delay: 250,
+                data: function (params) {
+                    return {
+                        q: params.term,
+                        page: params.page
+                    };
+                },
+                processResults: function (data, params) {
+                    params.page = params.page || 1;
+                    return {
+                        results: data.results,
+                        pagination: {
+                            more: (params.page * 30) < data.total_count
+                        }
+                    };
+                },
+                cache: true
+            },
+            escapeMarkup: function (markup) {
+                return markup;
+            }, // let our custom formatter work
+            minimumInputLength: 1,
+            templateResult: formatRepo, // omitted for brevity, see the source of this page
+            templateSelection: ItemsDisplayPersonas // omitted for brevity, see the source of this page
+        });
+
+        $('#id_estadoactual').removeAttr('required')
+    });
+    function encontradoCheck(obj){
+        if(obj.is(':checked')){
+            $("#fieldset_estadoactual").show()
+            $("#id_estadoactual").attr('required', true)
+            $("#id_enuso").prop('checked', true);
+        }else{
+            $("#fieldset_estadoactual").hide()
+            $("#id_estadoactual").val('').trigger('change').removeAttr('required')
+             $("#id_enuso").prop('checked', false);
+        }
+    }
+    function traspasoCkeck(obj){
+        if(obj.is(':checked')){
+            $("#fieldset_usuariobienes").show()
+            {#$("#id_usuariobienes").attr('required', true)#}
+        }else{
+            $("#fieldset_usuariobienes").hide()
+            $("#id_usuariobienes").val('').trigger('change')
+        }
+    }
+</script>

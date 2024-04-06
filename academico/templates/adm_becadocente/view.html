@@ -1,0 +1,293 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% load sga_extras %}
+{% block heading %}
+    <link rel="stylesheet" href="/static/css/bloques.css">
+    <script type="text/javascript" src='/static/js/jquery.validationEngine.js?v=1.0.0'></script>
+    <script type="text/javascript" src='/static/js/jquery.validationEngine-es.js?v=1.0.0' ></script>
+    <link type='text/css' rel='stylesheet' href="/static/css/validationEngine.jquery.css?v=1.0.0"/>
+    <script type="text/javascript">
+        $(function() {
+
+            $(".mostrarrecorrido").click(function() {
+                let id = $(this).attr('idc');
+                bloqueointerface();
+                $.ajax({
+                    type: "GET",
+                    url: "/adm_becadocente",
+                    data: {'action': 'mostrarrecorrido', 'id': id},
+                    success: function(data) {
+                        $.unblockUI();
+                        if (data.result == 'ok') {
+                            $(".paneltitlerecorrido").html(data.title);
+                            $(".panelbodyrecorrido").html(data.data);
+                            $("#itemspanelrecorrido").modal({backdrop:'static'}).modal('show');
+                        } else {
+                            mensajeErrorSwal("No se puede consultar", data.mensaje);
+                        }
+                    },
+                    error: function() {
+                        $.unblockUI();
+                        mensajeErrorSwal("No se puede consultar", "Error al enviar los datos")
+                    },
+                    dataType: "json"
+                });
+            });
+
+            $(".verificar").click(function() {
+                let idc = $(this).attr('idc');
+                let tveri = $(this).attr('tveri');
+                bloqueointerface();
+                $.ajax({
+                    type: "GET",
+                    url: "/adm_becadocente",
+                    data: {'action': 'verificarconvocatoria', 'idc': idc, 'tipoverificacion': tveri},
+                    success: function(data) {
+                        $.unblockUI();
+                        if (data.result == 'ok') {
+                            $(".panelbodyverificar").html(data.data);
+                            $(".paneltitleverificar").html(data.title);
+                            $("#itemspanelverificar").modal({backdrop:'static'}).modal('show');
+                        } else {
+                            mensajeErrorSwal("No se puede consultar", data.mensaje);
+                        }
+                    },
+                    error: function() {
+                        $.unblockUI();
+                        mensajeErrorSwal("No se puede consultar", "Error al enviar los datos")
+                    },
+                    dataType: "json"
+                });
+            });
+
+            $("#itemspanelverificar .guardar").click(function () {
+                envioformularioreg("/adm_becadocente","verificarconvocatoria", false);
+                return false;
+            });
+
+            envioformularioreg = function(url, action, destino){
+                let valido;
+                let formdata;
+
+                if(action == 'verificarconvocatoria')
+                    $("#frmverificar").validationEngine('attach',{ scroll: false });
+                    valido = $("#frmverificar").validationEngine('validate', { scroll: false });
+
+                if(valido){
+                    bloqueointerface();
+                    if(action == 'verificarconvocatoria')
+                        formdata = new FormData($("#frmverificar")[0]);
+
+                    $.ajax({
+                        type: "POST",
+                        action: action,
+                        url: url,
+                        data: formdata,
+                        success: function(data) {
+                            if(data.result=='ok'){
+                                $.unblockUI();
+                                urlDestino = "/adm_becadocente?action=convocatorias";
+                                mensajeSuccessSwal(data.titulo, data.mensaje, urlDestino);
+                            }else{
+                                $.unblockUI();
+                                if(data.swalType == 'warning')
+                                    mensajeWarningSwal(data.titulo, data.mensaje);
+                                else
+                                    mensajeErrorSwal(data.titulo, data.mensaje);
+                            }
+                        },
+                        error: function() {
+                            $.unblockUI();
+                            mensajeErrorSwal("No se puede guardar", "Error al enviar los datos")
+                        },
+                        dataType: "json",
+                        cache: false,
+                        contentType: false,
+                        processData: false
+                    });
+                }else{
+                    setTimeout(function() {
+                        $('.help-text').html("");
+                    }, 8000);
+                    $.unblockUI();
+                }
+            };
+
+        });
+    </script>
+{% endblock %}
+{% block atras %}{{ enlaceatras }}{% endblock %}
+{% block canvas %}
+    {# TITULO PANTALLA #}
+    <div class='row'>
+        <div class='col-lg-12'>
+            <div class="headtitle">
+                <h3 class="texto-blue">{{ title }}</h3>
+                <h6>Gestión Becas Docentes</h6>
+            </div>
+        </div>
+    </div>
+    {# TITULO PANTALLA #}
+    {# FILA DE FILTRO #}
+    <div class='row'>
+        <div class="col-sm-12 pb-2">
+            {% if persona.es_analista_investigacion %}
+                <a href="/adm_becadocente?action=addconvocatoria" class='btn btn-success tu' title="Agregar Convocatoria"><span class="fa fa-plus" ></span> Agregar</a>
+            {% endif %}
+        </div>
+    </div>
+    {# FILA DE FILTRO #}
+    {# TABLA DE DATOS #}
+    <div class="card mb-4">
+        <div class="card-body border-top border-6 rounded-3 border-dark-info">
+            <table class='tabla_responsive table table-bordered table-striped'>
+                <thead class="table-light cabecera-fija">
+                    <tr>
+                        <th style="width: 48%; font-weight: bold; text-align: center">Convocatoria</th>
+                        <th style="width: 10%; font-weight: bold; text-align: center">Inicio Postulación</th>
+                        <th style="width: 10%; font-weight: bold; text-align: center">Fin Postulación</th>
+                        <th style="width: 15%; font-weight: bold; text-align: center"># Solicitudes</th>
+                        <th style="width: 10%; font-weight: bold; text-align: center">Estado</th>
+                        <th style="width: 7%; font-weight: bold; text-align: center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for convocatoria in convocatorias %}
+                        <tr>
+                            <td style="text-align: justify">{{ convocatoria.descripcion }}</td>
+                            <td style="text-align: center">{{ convocatoria.iniciopos|date:'d-m-Y' }}</td>
+                            <td style="text-align: center">{{ convocatoria.finpos|date:'d-m-Y' }}</td>
+                            <td style="text-align: center">
+                                <span class="badge badge-info">
+                                    {% with totalsolicitudes=convocatoria|args:persona|call:"total_solicitudes_beca" %}
+                                        {{ totalsolicitudes }}
+                                    {% endwith %}
+                                </span>
+                            </td>
+                            <td style="text-align: center">
+                                <span class="{{ convocatoria.estado.clase }} tu" title="{{ convocatoria.estado.observacion }}">{{ convocatoria.estado.descripcion }}</span>
+                            </td>
+                            <td style="text-align: center">
+                                <div class="dropbottom" style="text-align: left">
+                                    <button type="button" class="btn btn-default dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Acciones <i class="fa fa-angle-down"></i></button>
+                                    <ul class="dropdown-menu pull-right" x-placement="right-start">
+                                        {% with puedeverrecorrido=convocatoria|args:persona|call:"puede_verrecorrido_convocatoria_becadocente" puedeverificar=convocatoria|args:persona|call:"puede_verificar_convocatoria_becadocente" tipoverificacion=convocatoria|args:persona|call:"tipo_accion_verificar_convocatoria_becadocente" %}
+                                            {% if puedeverrecorrido %}
+                                                <li class="dropdown-item"><a class="mostrarrecorrido" idc="{{ convocatoria.id|encrypt }}" href="javascript:;"><i class="fa fa-list-ol"></i> Mostrar Recorrido</a></li>
+                                            {% endif %}
+                                            {% if persona.es_analista_investigacion and not convocatoria.revisada %}
+                                                <li class="dropdown-item"><a href="/adm_becadocente?action=editconvocatoria&idc={{ convocatoria.id|encrypt }}"><i class="fa fa-edit"></i> Editar</a></li>
+                                            {% endif %}
+                                            {% if puedeverificar %}
+                                                <li class="dropdown-item"><a href="javascript:;" class="verificar" idc="{{ convocatoria.id|encrypt }}"  tveri="{{ tipoverificacion }}"><i class="fa fa-check-square-o"></i> {{ tipoverificacion }}</a></li>
+                                            {% endif %}
+                                            {% if puedeverrecorrido %}
+                                                <div class="dropdown-divider"></div>
+                                            {% endif %}
+                                            <li class="dropdown-item"><a href="/adm_becadocente?action=postulaciones&idc={{ convocatoria.id|encrypt }}"><i class="fa fa-list-ul"></i> Mostrar postulaciones</a></li>
+                                        {% endwith %}
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr><td style="text-align: center" colspan="6">NO EXISTEN REGISTROS DE CONVOCATORIAS DE BECAS</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="card-footer border-top-0">
+            {% include 'paginacionb4.html' %}
+        </div>
+    </div>
+    {# TABLA DE DATOS #}
+
+    <div class="modal fade static"  id="itemspanelrecorrido" style="display: none;">
+        <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4><i class="fa fa-list-ol"></i>&nbsp;<span class="paneltitlerecorrido">Mostrar Recorrido de la Convocatoria</span></h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+                    </button>
+                </div>
+                <div class="modal-body panelbodyrecorrido">
+
+                </div>
+                <div class="modal-footer" id="footermodal">
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal"> Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade static"  id="itemspanelverificar" style="display: none;">
+        <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4><i class="fa fa-check-square-o"></i>&nbsp;<span class="paneltitleverificar">Mostrar Recorrido de la Convocatoria</span></h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+                    </button>
+                </div>
+                <div class="modal-body panelbodyverificar">
+
+                </div>
+                <div class="modal-footer" id="footermodal">
+                    <button type="button" class="btn btn-success guardar"> Guardar</button>
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal"> Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade static"  id="itemspanelrequisitos" style="display: none;">
+        <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4><i class="fa fa-align-justify"></i>&nbsp;<span class="paneltitlerequisitos">Mostrar Recorrido de la Convocatoria</span></h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+                    </button>
+                </div>
+                <div class="modal-body panelbodyrequisitos">
+                    <table class="table table-bordered table-striped table-condensed table-hover table-even-widths" id="tbdetallerequisitos">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 3%; text-align: center;">#</th>
+                                <th style="width: 82%; text-align: center;">Requisito</th>
+                                <th style="width: 15%; text-align: center;">Requiere cargar información</th>
+                            </tr>
+                        </thead>
+                        <tbody id="detalle_requisitos">
+
+                        </tbody>
+                    </table>
+                </div>
+                <div class="modal-footer" id="footermodal">
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal"> Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade static"  id="itemspanelmensajeinformativo" style="display: none;">
+        <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4><i class="fa fa-file-text"></i>&nbsp;<span class="paneltitlemensajeinformativo">Mostrar Recorrido de la Convocatoria</span></h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+                    </button>
+                </div>
+                <div class="modal-body panelbodymensajeinformativo">
+                    <table class="table table-bordered table-striped table-condensed table-hover table-even-widths" id="tbdetallemensajeinformativo">
+                        <tbody id="detalle_mensajeinformativo">
+
+                        </tbody>
+                    </table>
+                </div>
+                <div class="modal-footer" id="footermodal">
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal"> Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}

@@ -1,0 +1,622 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% load sga_extras %}
+{% block heading %}
+    <style>
+        .accordion-item{
+            border:1px solid rgba(0,0,0,.125);
+        }
+        .accordion-header{
+            padding: 1px;
+        }
+        .accordion-button{
+            padding: 10px;
+        }
+        .accordion-body{
+            padding: 2px;
+        }
+    </style>
+    <script type="text/javascript">
+        $(function() {
+            $('[data-bs-toggle="tooltip"]').on('click', function () {
+                $(this).tooltip('hide');
+            });
+        });
+    </script>
+{% endblock %}
+{% block atras %}/pro_proyectoinvestigacion?id={{ proyecto.id|encrypt }}&action=propuestas&idc={{ proyecto.convocatoria.id|encrypt }}{% endblock %}
+{% block canvas %}
+    {# TITULO PANTALLA #}
+    <div class='row'>
+        <div class='col-lg-12'>
+            <div class="headtitle">
+                <h3 class="texto-blue">{{ title }}</h3>
+                <h6>Propuestas de Docentes (Convocatoria: {{ proyecto.convocatoria.descripcion }})</h6>
+            </div>
+        </div>
+    </div>
+    {# TITULO PANTALLA #}
+    <div class="container-fluid">
+        {# TITULO DEL PROYECTO #}
+        <div class='row'>
+            <div class="col-sm-12">
+                <div class="alert alert-info" style="text-align: justify">
+                    <strong>{{ proyecto.titulo }}</strong>
+                </div>
+            </div>
+        </div>
+        {# TITULO DEL PROYECTO #}
+        {# TABLA DE DATOS #}
+        <div class="card mb-4">
+            <div class="card-body border-top border-6 rounded-3 border-dark-info">
+                <div class="row">
+                    {# PESTAÑAS #}
+                <ul class="nav nav-tabs" role="tablist">
+                    <li class="nav-item">
+                        <a class="nav-link active" data-bs-toggle="tab" href="#datosgenerales">Datos Generales</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-bs-toggle="tab" href="#integrantes">Integrantes</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-bs-toggle="tab" href="#contenido">Contenido</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-bs-toggle="tab" href="#presupuesto">Presupuesto</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-bs-toggle="tab" href="#cronograma">Cronograma</a>
+                    </li>
+                </ul>
+                {# PESTAÑAS #}
+                {# CONTENIDO DE CADA PESTAÑA #}
+                <div class="tab-content px-0">
+                    <div id="datosgenerales" class="container tab-pane active px-0"><br>
+                        <table class="table table-bordered table-striped table-condensed table-hover table-even-widths" id="tbdatosgenerales">
+                            <thead class="table-light">
+                                <tr>
+                                    <th colspan="4">Datos Generales</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td style="width: 15%;"><strong>Convocatoria:</strong></td>
+                                    <td style="width: 35%;">{{ proyecto.convocatoria.descripcion }}</td>
+                                    <td style="width: 15%;"><strong>Tipo:</strong></td>
+                                    <td style="width: 35%;">{{ proyecto.categoria2.descripcion }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Título:</strong></td>
+                                    <td colspan="3" style="text-align: justify">{{ proyecto.titulo }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Área Conocimiento:</strong></td>
+                                    <td style="text-align: justify">{{ proyecto.areaconocimiento.nombre }}</td>
+                                    <td><strong>Sub área Conocimiento:</strong></td>
+                                    <td style="text-align: justify">{{ proyecto.subareaconocimiento.nombre }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Sub área específica Conocimiento:</strong></td>
+                                    <td colspan="3" style="text-align: justify">{{ proyecto.subareaespecificaconocimiento.nombre }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Línea Investigación:</strong></td>
+                                    <td style="text-align: justify">{{ proyecto.lineainvestigacion.nombre }}</td>
+                                    <td><strong>Sub-Línea Investigación:</strong></td>
+                                    <td>
+                                        {% for sublinea in proyecto.sublineainvestigacion.all %}
+                                            {{ sublinea.nombre }}
+                                            {% if not forloop.last %}, {% endif %}
+                                        {% endfor %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Programa:</strong></td>
+                                    <td style="text-align: justify">{{ proyecto.programainvestigacion.nombre }}</td>
+                                    <td><strong>Área prioritaria:</strong></td>
+                                    <td style="text-align: justify">{{ proyecto.industriapriorizada.nombre }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>¿Requiere convenio?:</strong></td>
+                                    <td colspan="3" style="text-align: justify">
+                                        {% if proyecto.requiereconvenio %}SI ({{ proyecto.especificaconvenio }}){% else %}NO{% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>¿Necesita permiso del CEISH?:</strong></td>
+                                    <td colspan="3" style="text-align: justify">
+                                        {% if proyecto.requierepermiso %}SI ({{ proyecto.especificapermiso }}){% else %}NO{% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Duración(meses):</strong></td>
+                                    <td style="text-align: justify">{{ proyecto.tiempomes }} meses</td>
+                                    <td><strong>Contempla compra de equipamiento:</strong></td>
+                                    <td>
+                                        {% if convocatoriamonto.tipoequipamiento %}
+                                            {{ convocatoriamonto.get_tipoequipamiento_display }}
+                                        {% else %}
+                                            {% if proyecto.contempla_compra_equipos %}SI{% else %}NO{% endif %}
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Monto UNEMI:</strong></td>
+                                    <td>$ {{ proyecto.montounemi|floatformat:2|intcomma }}</td>
+                                    <td><strong>Máximo a financiar por UNEMI:</strong></td>
+                                    <td>$ {{ convocatoriamonto.maximo|floatformat:2|intcomma }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Monto otra fuente:</strong></td>
+                                    <td>$ {{ proyecto.montootrafuente|floatformat:2|intcomma }}</td>
+                                    <td><strong>Monto Total:</strong></td>
+                                    <td>$ {{ proyecto.montototal|floatformat:2|intcomma }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <br>
+                        <table class="table table-bordered table-striped table-condensed table-hover table-even-widths" id="tblocalizacion">
+                            <thead class="table-light">
+                                <tr>
+                                    <th colspan="4">Localización Geográfica del proyecto</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if proyecto.tipocobertura == 1 or proyecto.tipocobertura == 2 %}
+                                    <tr>
+                                        <td style="width: 15%;"><strong>Tipo de Cobertura:</strong></td>
+                                        <td colspan="3" style="width: 85%;">{{ proyecto.get_tipocobertura_display }}</td>
+                                    </tr>
+                                {% elif proyecto.tipocobertura == 3 %}
+                                    <tr>
+                                        <td style="width: 15%;"><strong>Tipo de Cobertura:</strong></td>
+                                        <td style="width: 35%;">{{ proyecto.get_tipocobertura_display }}</td>
+                                        <td style="width: 15%;"><strong>Zonas de planificación:</strong></td>
+                                        <td style="width: 35%;">
+                                            {% for zona in proyecto.zonas.all %}
+                                                {{ zona.nombre }} ({{ zona.miembroszona }})
+                                                {% if not forloop.last %}, {% endif %}
+                                            {% endfor %}
+                                        </td>
+                                    </tr>
+                                {% elif proyecto.tipocobertura == 4 %}
+                                    <tr>
+                                        <td style="width: 15%;"><strong>Tipo de Cobertura:</strong></td>
+                                        <td style="width: 35%;">{{ proyecto.get_tipocobertura_display }}</td>
+                                        <td style="width: 15%;"><strong>Provincias:</strong></td>
+                                        <td style="width: 35%;">
+                                            {% for provincia in proyecto.provincias.all %}
+                                                {{ provincia.nombre }}
+                                                {% if not forloop.last %}, {% endif %}
+                                            {% endfor %}
+                                        </td>
+                                    </tr>
+                                {% else %}
+                                    <tr>
+                                        <td style="width: 15%;"><strong>Tipo de Cobertura:</strong></td>
+                                        <td style="width: 35%;">{{ proyecto.get_tipocobertura_display }}</td>
+                                        <td style="width: 15%;"><strong>Provincia:</strong>
+                                        <td style="width: 35%; text-align: justify">{{ proyecto.provincia.nombre }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="width: 15%;"><strong>Cantones:</strong></td>
+                                        <td style="width: 35%; text-align: justify">
+                                            {% for canton in proyecto.canton.all %}
+                                                {{ canton.nombre }}
+                                                {% if not forloop.last %}, {% endif %}
+                                            {% endfor %}
+                                        </td>
+                                        <td style="width: 15%;"><strong>Parroquia:</strong></td>
+                                        <td style="width: 35%; text-align: justify">{{ proyecto.parroquia }}</td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                        <br>
+                        <table class="table table-bordered table-striped table-condensed table-hover table-even-widths" id="tbinstitucion">
+                            <thead class="table-light">
+                                <tr>
+                                    <th colspan="7">Instituciones Participantes</th>
+                                </tr>
+                                <tr>
+                                    <th style="width: 10%; text-align: center;">Tipo Institución</th>
+                                    <th style="width: 20%; text-align: center;">Grupo de Investigación</th>
+                                    <th style="width: 20%; text-align: center;">Representante legal</th>
+                                    <th style="width: 10%; text-align: center;">Identificación</th>
+                                    <th style="width: 10%; text-align: center;">e-mail</th>
+                                    <th style="width: 20%; text-align: center;">Dirección</th>
+                                    <th style="width: 10%; text-align: center;">Página web</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for institucion in proyecto.instituciones_proyecto %}
+                                    <tr>
+                                        <td style="text-align: center">{{ institucion.get_tipo_display }}</td>
+                                        <td style="text-align: justify">
+                                            {% if institucion.tipo == 1 %}
+                                                {{ proyecto.grupoinvestigacion.nombre }}
+                                            {% endif %}
+                                        </td>
+                                        <td style="text-align: justify">{{ institucion.representante }}</td>
+                                        <td style="text-align: justify">{{ institucion.cedula }}</td>
+                                        <td style="text-align: justify">{{ institucion.email }}</td>
+                                        <td style="text-align: justify">{{ institucion.direccion }}</td>
+                                        <td style="text-align: justify">{{ institucion.paginaweb }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="integrantes" class="container tab-pane fade px-0"><br>
+                        <table class="table table-bordered table-striped table-condensed table-hover table-even-widths" id="tblocalizacion">
+                            <thead class="table-light">
+                                <tr>
+                                    <th colspan="8">Integrantes del Proyecto de Investigación</th>
+                                </tr>
+                                <tr>
+                                    <th style="width: 7%; font-weight: bold; text-align: center">Rol</th>
+                                    <th style="width: 7%; font-weight: bold; text-align: center">Tipo</th>
+                                    <th style="width: 7%; font-weight: bold; text-align: center">Identificación</th>
+                                    <th style="width: 23%; font-weight: bold; text-align: center">Nombres y Apellidos</th>
+                                    <th style="width: 32%; font-weight: bold; text-align: center">Entidad</th>
+                                    <th style="width: 14%; font-weight: bold; text-align: center">Teléfonos/E-mail</th>
+                                    <th style="width: 10%; font-weight: bold; text-align: center">Investigador Acreditado</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for integrante in proyecto.integrantes_proyecto_informe %}
+                                    <tr>
+                                        <td style="text-align: center">{{ integrante.get_funcion_display }}</td>
+                                        <td style="text-align: center">{{ integrante.get_tipo_display }}</td>
+                                        <td style="text-align: center">{{ integrante.persona.identificacion }}</td>
+                                        <td style="text-align: justify">
+                                            {{ integrante.persona.nombre_completo_inverso }}<br>
+                                            <span class="label label-{{ integrante.color_tipo_registro }}">{{ integrante.get_tiporegistro_display }}</span>
+                                            {% if integrante.tiporegistro == 2 %}
+                                                <span class="label label-info">{{ integrante.personareemplazo.nombre_completo }}</span>
+                                            {% endif %}
+                                            {% if integrante.tiporegistro != 1 %}
+                                                <a target="_blank" href="{{ integrante.archivo.url }}" class="btn btn-mini btn-warning tu" data-toggle="tooltip" data-placement="top" data-original-title="Descargar Archivo"><i class="fa fa-download"></i> </a>
+                                            {% endif %}
+                                        </td>
+                                        <td style="text-align: justify">
+                                            {% if integrante.tipo != 4 %}
+                                                UNIVERSIDAD ESTATAL DE MILAGRO
+                                            {% else %}
+                                                {{ integrante.externo.institucionlabora|upper }}
+                                            {% endif %}
+                                        </td>
+                                        <td style="text-align: justify">
+                                            {% if integrante.persona.telefono %}
+                                                {{ integrante.persona.telefono }} /
+                                            {% endif %}
+                                            {{ integrante.persona.telefono_conv }}<br>
+                                            {% if integrante.persona.email %}
+                                                {{ integrante.persona.email }},
+                                            {% endif %}
+                                            {{ integrante.persona.emailinst }}
+                                        </td>
+                                        <td style="text-align: center">
+                                            <span class="label label-{{ integrante.color_estado_acreditado }}">{{ integrante.get_estadoacreditado_display }}</span>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="contenido" class="container tab-pane fade px-0"><br>
+                        <table class="table table-bordered table-striped table-condensed table-hover table-even-widths" id="tbcontenido">
+                            <thead class="table-light">
+                                <tr>
+                                    <th colspan="2">Contenido del Proyecto de Investigación</th>
+                                </tr>
+                            </thead>
+                            {% if proyecto.resumenpropuesta %}
+                                <tbody>
+                                    <tr>
+                                        <td style="width: 15%;"><strong>Resumen Propuesta:</strong></td>
+                                        <td style="width: 85%; text-align: justify">{{ proyecto.resumenpropuesta|safe }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="width: 15%;"><strong>Formulación del problema:</strong></td>
+                                        <td style="width: 85%; text-align: justify">{{ proyecto.formulacionproblema|safe }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="width: 15%;"><strong>Objetivo General:</strong></td>
+                                        <td style="width: 85%; text-align: justify">{{ proyecto.objetivogeneral|safe }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="width: 15%;"><strong>Objetivos Específicos:</strong></td>
+                                        <td style="width: 85%;">
+                                            <table class="table table-bordered table-striped table-condensed table-hover table-even-widths" id="tbdetalleobjetivos">
+                                                <thead class="table-light">
+                                                    <tr>
+                                                        <th style="width: 3%; text-align: center;">#</th>
+                                                        <th style="width: 97%; text-align: center;">Objetivo</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="detalle_objetivos">
+                                                    {% for objetivo in proyecto.objetivos_especificos %}
+                                                        <tr>
+                                                            <td style="text-align: right">{{ forloop.counter }}</td>
+                                                            <td style="text-align: justify">{{ objetivo.descripcion }}</td>
+                                                        </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="width: 15%;"><strong>Justificación:</strong></td>
+                                        <td style="width: 85%; text-align: justify">{{ proyecto.justificacion|safe }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="width: 15%;"><strong>Estado del arte:</strong></td>
+                                        <td style="width: 85%; text-align: justify">{{ proyecto.estadoarte|safe }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="width: 15%;"><strong>Metodología:</strong></td>
+                                        <td style="width: 85%; text-align: justify">{{ proyecto.metodologia|safe }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="width: 15%;"><strong>Impactos:</strong></td>
+                                        <td style="width: 85%;">
+                                            <table class="table table-bordered table-striped table-condensed table-hover table-even-widths" id="tbdetalleimpacto">
+                                                <thead class="table-light">
+                                                    <tr>
+                                                        <th style="width: 15%; text-align: center;">Tipo</th>
+                                                        <th style="width: 85%; text-align: center;">Detalle</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="detalle_impactos">
+                                                    {% if proyecto.impactosocial %}
+                                                        <tr>
+                                                            <td><strong>Impacto Social:</strong></td>
+                                                            <td style="text-align: justify">{{ proyecto.impactosocial }}</td>
+                                                        </tr>
+                                                    {% endif %}
+                                                    {% if proyecto.impactocientifico %}
+                                                        <tr>
+                                                            <td><strong>Impacto Científico:</strong></td>
+                                                            <td style="text-align: justify">{{ proyecto.impactocientifico }}</td>
+                                                        </tr>
+                                                    {% endif %}
+                                                    {% if proyecto.impactoeconomico %}
+                                                        <tr>
+                                                            <td><strong>Impacto Económico:</strong></td>
+                                                            <td style="text-align: justify">{{ proyecto.impactoeconomico }}</td>
+                                                        </tr>
+                                                    {% endif %}
+                                                    {% if proyecto.impactopolitico %}
+                                                        <tr>
+                                                            <td><strong>Impacto Político:</strong></td>
+                                                            <td style="text-align: justify">{{ proyecto.impactopolitico }}</td>
+                                                        </tr>
+                                                    {% endif %}
+                                                    {% if proyecto.otroimpacto %}
+                                                        <tr>
+                                                            <td><strong>Otro Impacto:</strong></td>
+                                                            <td style="text-align: justify">{{ proyecto.otroimpacto }}</td>
+                                                        </tr>
+                                                    {% endif %}
+                                                </tbody>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="width: 15%;"><strong>Productos / Resultados / Compromisos:</strong></td>
+                                        <td style="width: 85%;">
+                                            <table class="table table-bordered table-striped table-condensed table-hover table-even-widths" id="tbdetalleproductos">
+                                                <thead class="table-light">
+                                                    <tr>
+                                                        <th style="width: 3%; text-align: center;">#</th>
+                                                        <th style="width: 97%; text-align: center;">Descripción</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="detalle_productos">
+                                                    {% for resultado in proyecto.resultados_compromisos %}
+                                                        <tr>
+                                                            <td style="text-align: right">{{ forloop.counter }}</td>
+                                                            <td style="text-align: justify">{{ resultado.resultado.descripcion }}</td>
+                                                        </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="width: 15%;"><strong>Referencias Bibliográficas (En formato APA séptima edición):</strong></td>
+                                        <td style="width: 85%;">
+                                            <table class="table table-bordered table-striped table-condensed table-hover table-even-widths" id="tbdetalleproductos">
+                                                <thead class="table-light">
+                                                    <tr>
+                                                        <th style="width: 3%; text-align: center;">#</th>
+                                                        <th style="width: 97%; text-align: center;">Referencia</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="detalle_productos">
+                                                    {% for referencia in proyecto.referencias_bibliograficas %}
+                                                        <tr>
+                                                            <td style="text-align: right">{{ forloop.counter }}</td>
+                                                            <td style="text-align: justify">{{ referencia.descripcion }}</td>
+                                                        </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                    {% if proyecto.archivoproyecto %}
+                                        <tr>
+                                            <td style="width: 15%;"><strong>Archivo del proyecto:</strong></td>
+                                            <td style="width: 85%;">
+                                                {% if proyecto.archivoproyecto %}
+                                                    <a target="_blank" href="{{ proyecto.archivoproyecto.url }}" class="btn btn-info tu" title="Descargar Archivo del proyecto"><i class="fa fa-eye"></i> Descargar</a>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    {% endif %}
+                                    <tr>
+                                        <td style="width: 15%;"><strong>Archivo Formato Inscripción:</strong></td>
+                                        <td style="width: 85%;">
+                                            {% if proyecto.archivodocumento %}
+                                                <a href="{{ proyecto.archivodocumento.url }}" class="btn btn-success" data-width="2048" data-height="1380" data-fancybox="formatosinfirmar{{ proyecto.id }}" data-caption="Formato de Inscripción" data-bs-toggle="tooltip" data-placement="top" title="Ver Archivo"><i class="fa fa-eye"></i> Ver Archivo</a>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="width: 15%;"><strong>Archivo Formato Inscripción Firmado:</strong></td>
+                                        <td style="width: 85%;">
+                                            {% if proyecto.archivodocumentofirmado %}
+                                                <a href="{{ proyecto.archivodocumentofirmado.url }}" class="btn btn-success" data-width="2048" data-height="1380" data-fancybox="formatofirmado{{ proyecto.id }}" data-caption="Formato de Inscripción Firmado" data-bs-toggle="tooltip" data-placement="top" title="Ver Archivo"><i class="fa fa-eye"></i> Ver Archivo</a>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            {% else %}
+                                <tbody>
+                                    <tr>
+                                        <td style="width: 85%; text-align: justify" colspan="2">NO HA REGISTRADO EL CONTENIDO DEL PROYECTO</td>
+                                    </tr>
+                                </tbody>
+                            {% endif %}
+                        </table>
+                    </div>
+                    <div id="presupuesto" class="container tab-pane fade px-0"><br>
+                        {% if proyecto.archivopresupuesto %}
+                            <a href="{{ proyecto.archivopresupuesto.url }}" class="btn btn-success" data-width="2048" data-height="1380" data-fancybox="presupuesto{{ proyecto.id }}" data-caption="Presupuesto del Proyecto" data-bs-toggle="tooltip" data-placement="top" title="Ver Archivo"><i class="fa fa-eye"></i> Presupuesto</a>
+                        {% endif %}
+                        <div class="accordion" id="accordionPanelsStayOpenExample">
+                            {# ACORDIÓN POR TIPO DE RECURSO #}
+                            {% for recursoconvocatoria in recursosconvocatoria %}
+                                {% with detalles=proyecto|args:recursoconvocatoria.tiporecurso.id|call:"presupuesto_detalle_tiporecurso" totales=proyecto|args:recursoconvocatoria.tiporecurso.id|call:"totales_detalle_tiporecurso" %}
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header" id="panelsStayOpen-heading{{ recursoconvocatoria.tiporecurso.id }}">
+                                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen-collapse{{ recursoconvocatoria.tiporecurso.id }}" aria-expanded="true" aria-controls="panelsStayOpen-collapse{{ recursoconvocatoria.tiporecurso.id }}">
+                                        <b>{{ forloop.counter }}.</b>&nbsp;{{ recursoconvocatoria.tiporecurso.descripcion }}&nbsp;
+                                        <span class="label label-info" id="totalitems{{ recursoconvocatoria.tiporecurso.id }}" data-bs-toggle="tooltip" data-bs-placement="top" title="Total items">{{ totales.totalitems }}</span>&nbsp;
+                                        <span class="label label-success" id="totalrecurso{{ recursoconvocatoria.tiporecurso.id }}" data-bs-toggle="tooltip" data-bs-placement="top" title="Total tipo recurso">$ {{ totales.totaldetalle|floatformat:2|intcomma }}</span>
+                                        </button>
+                                    </h2>
+                                    <div id="panelsStayOpen-collapse{{ recursoconvocatoria.tiporecurso.id }}" class="accordion-collapse collapse show" aria-labelledby="panelsStayOpen-heading{{ recursoconvocatoria.tiporecurso.id }}">
+                                        <div class="accordion-body">
+                                            <div class="table-responsive-xxl">
+                                                <table class="table table-bordered table-striped" id="tbrecurso_{{ recursoconvocatoria.tiporecurso.id }}" style="margin-bottom: 1px">
+                                                    <thead class="table-light">
+                                                        <tr>
+                                                            <th style="width: 1%; text-align: center">N°</th>
+                                                            <th style="width: 25%; text-align: center">Recurso</th>
+                                                            <th style="width: 25%; text-align: center">Descripcion</th>
+                                                            <th style="width: 8%; text-align: center">Cant</th>
+                                                            <th style="width: 8%; text-align: center">Valor Unitario</th>
+                                                            <th style="width: 8%; text-align: center">Total</th>
+                                                            <th style="width: 17%; text-align: center">Observaciones</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody id="detalle_recurso_{{ recursoconvocatoria.tiporecurso.id }}">
+                                                        {% if detalles %}
+                                                            {% for detalle in detalles %}
+                                                                <tr id="filadetalle_{{ recursoconvocatoria.tiporecurso.id }}{{ forloop.counter }}">
+                                                                    <td style="text-align: right;"><b>{{ forloop.counter }}</b></td>
+                                                                    <td style="text-align: justify">{{ detalle.recurso }}</td>
+                                                                    <td style="text-align: justify">{{ detalle.descripcion }}</td>
+                                                                    <td style="text-align: right">{{ detalle.cantidad }}</td>
+                                                                    <td style="text-align: right">$ {{ detalle.valorunitario|floatformat:2|intcomma }}</td>
+                                                                    <td style="text-align: right">$ {{ detalle.valortotal|floatformat:2|intcomma }}</td>
+                                                                    <td style="text-align: justify">{{ detalle.observacion }}</td>
+                                                                </tr>
+                                                            {% endfor %}
+                                                        {% else %}
+                                                            <tr id="fila_default_recurso_{{ recursoconvocatoria.tiporecurso.id }}">
+                                                                <td colspan="7" style="text-align: center">NO EXISTEN DETALLES PARA EL TIPO DE RECURSO {{ recursoconvocatoria.tiporecurso.descripcion }}</td>
+                                                            </tr>
+                                                        {% endif %}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endwith %}
+                            {% endfor %}
+                            {# ACORDIÓN POR RUBRICA #}
+                        </div>
+                    </div>
+                    <div id="cronograma" class="container tab-pane fade px-0"><br>
+                        <div class="accordion" id="accordionPanelsStayOpenExample">
+                            {# ACORDIÓN POR OBJETIVO #}
+                            {% for objetivo in objetivos %}
+                                {% with detalles=proyecto|args:objetivo.id|call:"cronograma_detallado_objetivo" totales=proyecto|args:objetivo.id|call:"totales_detalle_objetivo" %}
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header" id="panelsStayOpen-heading{{ objetivo.id }}">
+                                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen-collapse{{ objetivo.id }}" aria-expanded="true" aria-controls="panelsStayOpen-collapse{{ objetivo.id }}">
+                                        <b>{{ forloop.counter }}.</b>&nbsp;{{ objetivo.descripcion }}&nbsp;
+                                        <span class="label label-info" id="totalactividades{{ objetivo.id }}" data-bs-toggle="tooltip" data-bs-placement="top" title="Total actividades">{{ totales.totalactividades }}</span>&nbsp;
+                                        <span class="label label-success" id="totalobjetivo{{ objetivo.id }}" data-bs-toggle="tooltip" data-bs-placement="top" title="Total ponderación objetivo">{{ totales.totalponderacion|floatformat:2|intcomma }} %</span>
+                                        </button>
+                                    </h2>
+                                    <div id="panelsStayOpen-collapse{{ objetivo.id }}" class="accordion-collapse collapse show" aria-labelledby="panelsStayOpen-heading{{ objetivo.id }}">
+                                        <div class="accordion-body">
+                                            <div class="table-responsive-xxl">
+                                                <table class="table table-bordered table-striped" id="tbobjetivo_{{ objetivo.id }}" style="margin-bottom: 1px">
+                                                    <thead class="table-light">
+                                                        <tr>
+                                                            <th style="width: 1%; text-align: center">N°</th>
+                                                            <th style="width: 40%; text-align: center">Actividad</th>
+                                                            <th style="width: 8%; text-align: center">Ponderación (%)</th>
+                                                            <th style="width: 8%; text-align: center">Fecha Inicio</th>
+                                                            <th style="width: 8%; text-align: center">Fecha Fin</th>
+                                                            <th style="width: 15%; text-align: center">Entregable</th>
+                                                            <th style="width: 20%; text-align: center">Responsables</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody id="detalle_objetivo_{{ objetivo.id }}">
+                                                        {% if detalles %}
+                                                            {% for detalle in detalles %}
+                                                                <tr id="filadetalle_{{ objetivo.id }}{{ forloop.counter }}">
+                                                                    <td style="text-align: right;"><b>{{ forloop.counter }}</b></td>
+                                                                    <td style="text-align: justify">{{ detalle.actividad }}</td>
+                                                                    <td style="text-align: right">{{ detalle.ponderacion|floatformat:2 }} %</td>
+                                                                    <td style="text-align: center">{{ detalle.fechainicio|date:"d-m-Y" }}</td>
+                                                                    <td style="text-align: center">{{ detalle.fechafin|date:"d-m-Y" }}</td>
+                                                                    <td style="text-align: justify">
+                                                                        {% if detalle.entregable %}
+                                                                            {{ detalle.entregable }}
+                                                                        {% elif detalle.lista_entregables %}
+                                                                            {% for entregable in detalle.lista_entregables %}
+                                                                                {{ entregable.entregable }}<br>
+                                                                            {% endfor %}
+                                                                        {% else %}
+                                                                            <span class="label label-warning">FALTA ENTREGABLE</span>
+                                                                        {% endif %}
+                                                                    </td>
+                                                                    <td style="text-align: justify">
+                                                                        {% for responsable in detalle.lista_responsables %}
+                                                                            <span class="label label-info">{{ responsable.persona.nombre_completo_inverso }}</span>
+                                                                        {% endfor %}
+                                                                    </td>
+                                                                </tr>
+                                                            {% endfor %}
+                                                        {% else %}
+                                                            <tr id="fila_default_objetivo_{{ objetivo.id }}">
+                                                                <td colspan="7" style="text-align: center">NO EXISTEN DETALLES DE ACTIVIDADES PARA EL OBJETIVO # {{ forloop.counter }}</td>
+                                                            </tr>
+                                                        {% endif %}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endwith %}
+                            {% endfor %}
+                            {# ACORDIÓN POR OBJETIVO #}
+                        </div>
+                    </div>
+                </div>
+                {# CONTENIDO DE CADA PESTAÑA #}
+                </div>
+            </div>
+        </div>
+        {# TABLA DE DATOS #}
+    </div>
+{% endblock %}

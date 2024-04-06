@@ -1,0 +1,344 @@
+{% extends "base.html" %}
+{% load sga_extras %}
+{% block atras %}{{ request.path }}?action=periodoconstatacion{% endblock %}
+{% block heading %}
+
+    {#    <script type="text/javascript" src="https://cdn.jsdelivr.net/jquery/latest/jquery.min.js"></script>#}
+    {#    <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>#}
+    {#    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>#}
+    {#    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css"/>#}
+    {##}
+    {#    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>#}
+    {#    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css"/>#}
+    {#    <script src="https://cdn.jsdelivr.net/npm/daterangepicker@3.1.0/moment.min.js"></script>#}
+    {#    <script src="https://cdn.jsdelivr.net/npm/daterangepicker@3.1.0/daterangepicker.min.js"></script>#}
+    {#    <link rel="stylesheet" type="text/css"#}
+    {#          href="https://cdn.jsdelivr.net/npm/daterangepicker@3.1.0/daterangepicker.css"/>#}
+
+    {#    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>#}
+    <script>
+        $(function () {
+            $("select").select2({width: '100%'})
+            let responsable = $("#id_responsable")
+            let constatador = $("#id_constatador")
+            constatador.select2({width: '100%', placeholder: 'Todos o seleccione uno o varios constatadores segun requiera.'})
+            buscarResponsable(responsable, 'distributivos')
+        });
+
+        function formModalReporte(id, text, action) {
+            $("#id_obj_r").val(id)
+            $("#id_action_r").val(action)
+            $('#itemspanelrepote .paneltitle-reporte').html(text.charAt(0).toUpperCase() + text.slice(1).toLowerCase());
+            $("#itemspanelrepote").modal({backdrop: 'static'}).modal('show');
+        }
+
+        function formatRepo(repo) {
+            if (repo.loading) {
+                return 'Buscando..'
+            }
+            var option = '';
+            if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+                option = $(`<b>${repo.text}</b>`);
+            } else {
+                option = $(`<div class="wrapper container"><div class="row"><div class="col-lg-2 text-center"><img src="${repo.foto}" width="50px" height="50px" class="w-25px rounded-circle me-2"></div><div class="col-lg-10 text-left"><b>Documento:</b> ${repo.documento}<br><b>Nombres:</b> ${repo.text}<br>${repo.departamento ? `<b>Departamento: </b><span>${repo.departamento}</span>` : ''} </div></div></div>`);
+            }
+            return option;
+        }
+
+        ItemsDisplayPersonas = function (item) {
+            if (item.text && item.documento) {
+                return $(`<img src="${item.foto}" width="25px" height="25px" class="w-25px rounded-circle me-2"><span>${item.text}</span>`);
+            } else if (item) {
+                return item.text;
+            } else {
+                return ' Consultar Personas';
+            }
+        };
+
+        function buscarResponsable(objeto, tipo, action = 'buscarpersonas', excl = '') {
+            objeto.select2({
+                width: '100%',
+                placeholder: "Todos o consultar responsable y filtrar por usuario",
+                allowClear: true,
+                ajax: {
+                    url: function (params) {
+                        return `{{ reques.path }}?action=${action}&q=${params.term}&tipo=${tipo}&idsagregados=${excl}`;
+                    },
+                    dataType: 'json',
+                    delay: 250,
+                    data: function (params) {
+                        return {
+                            q: params.term,
+                            page: params.page
+                        };
+                    },
+                    processResults: function (data, params) {
+                        params.page = params.page || 1;
+                        return {
+                            results: data.results,
+                            pagination: {
+                                more: (params.page * 30) < data.total_count
+                            }
+                        };
+                    },
+                    cache: true
+                },
+                escapeMarkup: function (markup) {
+                    return markup;
+                }, // let our custom formatter work
+                minimumInputLength: 1,
+                templateResult: formatRepo, // omitted for brevity, see the source of this page
+                templateSelection: ItemsDisplayPersonas // omitted for brevity, see the source of this page
+            });
+        }
+    </script>
+    {#    <script src="/static/adicionalesjs/formquestionb4.js?0.24"></script>#}
+{% endblock %}
+{% block canvas %}
+    <div class="modal fade static" id="itemspanelrepote" style="display: none;">
+        <div class="modal-dialog modal-dialog-centered modal-md" role="document">
+            <div class="modal-content" style="border-radius: 17px!important;">
+                <div class="modal-header">
+                    <h4><i class="fa fa-download" id="title-icon"></i> <b class="paneltitle-reporte"> FORMULARIO</b>
+                    </h4>
+                    <button type="button" class="btn-close btn-cerrar-modal fs-5 cerrar" data-toggle="modal"
+                            data-bs-dismiss="modal" aria-label="Close">X
+                    </button>
+                </div>
+                <div class="modal-body panelbody-reporte">
+                    <form class="form-horizontal form-modal" autocomplete="off" method="get"
+                          enctype="multipart/form-data" action="{{ request.path }}">
+                        {% csrf_token %}
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <div class="alert alert-default-info p-0">
+                                    <i class="fa fa-info-circle"></i> Estimad{% if persona.es_mujer %}a{% else %}o{% endif %}
+                                    <b>{{ persona.un_nombre_dos_apellidos }}</b>, recuerde que si desea extraer un
+                                    reporte con todos los responsables, no tiene que seleccionar
+                                    ningun responsable en la casilla de responsables de activo y lo mismo aplica para
+                                    constatador.
+                                </div>
+                            </div>
+                            <input type="hidden" value="" name="action" id="id_action_r">
+                            <input type="hidden" value="" name="id_obj" id="id_obj_r">
+                            <div class="col-lg-4">
+                                <label class="fw-semi-bold">Constatación: <b class="text-danger">*</b></label>
+                                <select name="constatacion" id="id_constatacion">
+                                    <option value="">Todos</option>
+                                    <option value="1">Constatados</option>
+                                    <option value="2">Por constatar</option>
+                                </select>
+                            </div>
+                            <div class="col-lg-4">
+                                <label class="fw-semi-bold">Estado: <b class="text-danger">*</b></label>
+                                <select name="estado" id="id_estado">
+                                    <option value="">Todos</option>
+                                    {% for tc in estados %}
+                                        <option {% if tc.id == estado %}selected{% endif %}
+                                                value="{{ tc.id }}">{{ tc.nombre }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-lg-4">
+                                <label class="fw-semi-bold">Detalle: <b class="text-danger">*</b></label>
+                                <select name="item" id="id_item">
+                                    <option value="">Todos</option>
+                                    <option value="1">¿Encontrado?</option>
+                                    <option value="2">¿En uso?</option>
+                                    <option value="3">¿Requiere traspaso?</option>
+                                    <option value="4">¿Requiere dar de baja?</option>
+                                </select>
+                            </div>
+                            <div class="col-lg-12">
+                                <label class="fw-semi-bold">Responsable de activo: <b class="text-danger">*</b></label>
+                                <select name="responsable" id="id_responsable" multiple>
+                                </select>
+                            </div>
+                            <div class="col-lg-12">
+                                <label class="fw-semi-bold">Constatador: <b class="text-danger">*</b></label>
+                                <select name="constatador" id="id_constatador" multiple>
+                                    {% for c in constatadores %}
+                                        <option value="{{ c.0 }}">{{ c.1|title }} {{ c.2|title }} {{ c.3|title }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                        </div>
+
+                        <div class="row">
+                            <div class="col-12 text-end">
+                                <button type="submit" class="btn btn-orange fs-5 bloqueo_pantalla" id="submit_generar"><i
+                                        class="fa fa-download"></i> Generar
+                                </button>
+                                <a href="javascript:;" class="btn btn-cian-secondary fs-5" data-bs-dismiss="modal"
+                                   aria-label="Close"><i class="fa fa-remove"></i> Cancelar</a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class='row'>
+        <div class='col-lg-12'>
+            <div class="headtitle">
+                <h3 class="texto-blue">{{ title }}</h3>
+                <h6>Detalle</h6>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-8 col-sm-6 col-md-4 col-lg-3">
+                <form method="GET" id="form-filters" enctype="multipart/form-data">
+                    <div class="row">
+                        <div class="col-10">
+                            <input type="hidden" name="action" value="{{ action }}"/>
+                            <div style="width: 100%;" class="response-info text-truncate">
+                                <i class="fa fa-calendar tu" title="Hasta"></i> Fecha desde - Fecha hasta:<br>
+                                <input style=" font-size:13px;" type="text" name="daterange"
+                                       value="{{ desde }}-{{ hasta }}"/>
+                            </div>
+                        </div>
+                        <div class="col-2">
+                            {% if url_vars %}
+                                <br>
+                                <a href="{{ request.path }}?action=reporteconstatacion&id={{ idp|encrypt }}"
+                                   id='allresults' class='btn btn-default align-self-end'><span
+                                        class="fa fa-refresh "></span></a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div class="col-4 col-sm-6 col-md-8 col-lg-9">
+                <br>
+                <div class="d-flex justify-content-end">
+                    <a href="javascript:void(0)"
+                       onclick="formModalReporte('{{ idp|encrypt }}','Reporte de constataciones','reportconstatacion')"
+                       class="btn btn-cian-opacity"><i class="fa fa-print"></i> Reportes de constatación</a>
+                    <div class="btn-group" role="group" aria-label="Button group with nested dropdown">
+                        <a style="margin-left: 10px; background-color: #1c3247;" title="Fechas anteriores"
+                           href="{{ request.path }}?action=reporteconstatacion&id={{ idp|encrypt }}&before={{ desde }}"
+                           id='allresults'
+                           class='btn btn-primary align-self-end{% if lenbefore <= 0 %} disabled{% endif %}'
+                           role='button'
+                           aria-disabled='{% if lenbefore <= 0 %}true{% else %}false{% endif %}'><span
+                                class="fas fa-arrow-left"></span></a>
+                        <a style="margin-left: 3px; background-color: #1c3247;" title="Fechas siguientes"
+                           href="{{ request.path }}?action=reporteconstatacion&id={{ idp|encrypt }}&after={{ hasta }}"
+                           id='allresults'
+                           class='btn btn-primary align-self-end{% if lenafter <= 0 %} disabled{% endif %}'
+                           role='button'
+                           aria-disabled='{% if lenafter <= 0 %}true{% else %}false{% endif %}'><span
+                                class="fas fa-arrow-right"></span></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+
+            <div class="card-body border-top border-6 rounded-3 border-dark-info">
+
+                <div class="table-responsive-xxl">
+                    <table class="table table-bordered table-striped">
+                        <thead>
+                        <tr>
+                            <th style="vertical-align: middle; padding-left: 10px">RESPONSABLE</th>
+                            {% for fecha in fechas %}
+                                <th data-date="{{ fecha }}" class="vertical-text"
+                                    style="text-align: center; rotate: 180deg;  height: 100px; writing-mode: vertical-rl; vertical-align: middle;">
+                                    {{ fecha|date:'d-m-Y' }}</th>
+                            {% endfor %}
+                            <th class="vertical-text"
+                                style="text-align: center; rotate: 180deg;  height: 100px; writing-mode: vertical-rl; vertical-align: middle;">
+                                Total
+                            </th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for respon in respons %}
+                            <tr>
+                                <td style="padding-left: 10px">{{ respon }}</td>
+                                {% for fecha in fechas %}
+                                    <td style="text-align: center">
+                                        {% with cantidad=respon|args:fecha|args:idp|call:"constataciones_por_responsable_af" %}
+                                            {{ cantidad|default_if_none:"" }}
+                                        {% endwith %}
+                                    </td>
+
+                                {% endfor %}
+                                <th style="text-align: center">
+                                    {% with total=respon|args:desde|args:hasta|args:idp|call:"total_constataciones_por_responsable_af" %}
+                                        {{ total|default_if_none:"" }}
+                                    {% endwith %}
+                                </th>
+                            </tr>
+                        {% endfor %}
+                        <tr>
+                            <th style="padding-left: 10px">Total</th>
+                            {% for t in totalporfecha %}
+                                <th style="text-align: center; "> {% if totalporfecha %} {{ t }} {% else %}
+                                    0 {% endif %} </th>
+                            {% endfor %}
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+    <script>
+        $(function () {
+            $('input[name="daterange"]').daterangepicker({
+                    startDate: moment("{{ desde }}", "YYYY/MM/DD"),
+                    endDate: moment("{{ hasta}}", "YYYY/MM/DD"),
+                    locale: {
+                        format: 'DD/MM/YYYY',
+                        "customRangeLabel": "Rango personalizado",
+                        applyLabel: '<i class="fas fa-check"></i> Selecionar',
+                        "cancelLabel": "Cancelar",
+                        "daysOfWeek": [
+                            "Do",
+                            "Lu",
+                            "Ma",
+                            "Mi",
+                            "Ju",
+                            "Vi",
+                            "Sa"
+                        ],
+                        "monthNames": [
+                            "Enero",
+                            "Febrero",
+                            "Marzo",
+                            "Abril",
+                            "Mayo",
+                            "Junio",
+                            "Julio",
+                            "Agosto",
+                            "Septiembre",
+                            "Octubre",
+                            "Noviembre",
+                            "Diciembre"
+                        ],
+                        "firstDay": 1
+                    },
+                    applyButtonClasses: 'btn-primary',
+                    cancelButtonClasses: 'btn-ligth',
+                },
+                function (start, end, label) {
+
+                    window.location.href = "{{ request.path }}?action=reporteconstatacion&id={{ idp|encrypt }}&desde=" + start.format("YYYY-MM-DD") + "&hasta=" + end.format("YYYY-MM-DD");
+                });
+
+        });
+
+    </script>
+
+{% endblock %}

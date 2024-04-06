@@ -1,0 +1,282 @@
+{% extends "basebs.html" %}
+{% load sga_extras %}
+{% block heading %}
+    <script>
+        $(document).ready(function() {
+            var table = $('#example').DataTable({
+                "sPaginationType": "full_numbers",
+                "sDom": 'T<"clear">lfrtip',
+                "paging":   false,
+                "ordering": false,
+                "info":     false,
+                "order": [[ 2, 'asc' ]],
+                "columnDefs": [{ "visible": false,"targets": [1,2,3,4] }],
+                "drawCallback": function ( settings ) {
+                    var api = this.api();
+                    var rows = api.rows( {page:'current'} ).nodes();
+                    var last=null;
+                    api.column(1, {page:'current'} ).data().each( function ( group, i ) {
+                        if ( last !== group ) {
+                            $(rows).eq( i ).before(
+                                '<tr class="group"><td colspan="5" bgcolor= "#d9edf7">'+group+'</td></tr>'
+                            );
+                            last = group
+                        }
+                    });
+                    api.column(2, {page:'current'} ).data().each( function ( group, i ) {
+                        if ( last !== group ) {
+                            $(rows).eq( i ).before(
+                                '<tr class="group"><td colspan="5">'+group+'</td></tr>'
+                            );
+                            last = group
+                        }
+                    });
+                    api.column(3, {page:'current'} ).data().each( function ( group, i ) {
+                        if ( last !== group ) {
+                            $(rows).eq( i ).before(
+                                '<tr class="group"><td colspan="5">'+group+'</td></tr>'
+                            );
+                            last = group
+                        }
+                    });
+                    api.column(4, {page:'current'} ).data().each( function ( group, i ) {
+                        if ( last !== group ) {
+                            $(rows).eq( i ).before(
+                                '<tr class="group"><td style="padding: 4px" colspan="5" height="30" >'+group+'</td></tr>'
+                            );
+                            last = group
+                        }
+                    });
+                    $('[data-toggle="tooltip"]').tooltip();
+                }
+                {#,#}
+                {#"sPaginationType": "full_numbers",#}
+                {#"sDom": 'T<"clear">lfrtip',#}
+                {#"paging":   false,#}
+                {#"ordering": false,#}
+                {#"info":     false,#}
+                {#"order": [[ 2, 'asc' ]],#}
+                {#"columnDefs": [{ "visible": false,"targets": 2 }],#}
+                {#"drawCallback": function ( settings ) {#}
+                {#    var api = this.api();#}
+                {#    var rows = api.rows( {page:'current'} ).nodes();#}
+                {#    var last=null;#}
+                {#    api.column(2, {page:'current'} ).data().each( function ( group, i ) {#}
+                {#        if ( last !== group ) {#}
+                {#            $(rows).eq( i ).before(#}
+                {#                '<tr class="group"><td colspan="5" height="30" >'+group+'</td></tr>'#}
+                {#            );#}
+                {#            last = group#}
+                {#        }#}
+                {#    });#}
+                {#    $('[data-toggle="tooltip"]').tooltip();#}
+                {# }#}
+
+            });
+            $(".cargaverificacion").click(function() {
+                var iddocumentomedio = $(this).attr('iddocumentomedio');
+                var ancho = (parseInt($(this).attr('ancho'))==0)? $(window).width()-100: $(this).attr('ancho');
+                var alto = (parseInt($(this).attr('alto'))==0)? '530px': $(this).attr('alto');
+                bloqueointerface();
+                $.ajax({
+                    type: "GET",
+                    url: "/poa_subirevidencia",
+                    data: {'action': 'ver_medio', 'iddocumento': iddocumentomedio },
+                    success: function(data) {
+                        $.unblockUI();
+                        if (data.result == 'ok') {
+                            $(".panelbodymedio").html(data.data);
+                            $("#itemspanelmedio").modal({backdrop:'static', width: ancho, height: alto}).modal('show');
+                        } else {
+                            smoke.alert(data.mensaje);
+                        }
+                    },
+                    error: function() {
+                        $.unblockUI();
+                        smoke.alert("Error de conexión.");
+                    },
+                    dataType: "json"
+                });
+            });
+            $("#cerrarpanelmedio").click(function() {
+                $("#itemspanelmedio").modal("hide");
+                return false;
+            });
+            $(".cargarobservacion").click(function() {
+                var iddocumento = $(this).attr('iddocumento');
+                var ancho = (parseInt($(this).attr('ancho'))==0)? $(window).width()-100: $(this).attr('ancho');
+                var alto = (parseInt($(this).attr('alto'))==0)? '530px': $(this).attr('alto');
+                bloqueointerface();
+                $.ajax({
+                    type: "GET",
+                    url: "/poa_subirevidencia",
+                    data: {'action': 'ver_observacion', 'iddocumento': iddocumento },
+                    success: function(data) {
+                        $.unblockUI();
+                        if (data.result == 'ok') {
+                            $(".panelbodyobs").html(data.data);
+                            $("#itemspanelobs").modal({backdrop:'static', width: ancho, height: alto}).modal('show');
+                        } else {
+                            smoke.alert(data.mensaje);
+                        }
+                    },
+                    error: function() {
+                        $.unblockUI();
+                        smoke.alert("Error de conexión.");
+                    },
+                    dataType: "json"
+                });
+            });
+            $("#cerrarpanelobs").click(function() {
+                $("#itemspanelobs").modal("hide");
+                return false;
+            });
+
+            $(".cargararchivo").click(function() {
+                var id = $(this).attr('idr');
+                var record = $(this).attr('record');
+                bloqueointerface();
+                $.ajax({
+                    type: "GET",
+                    url: "/poa_subirevidencia",
+                    data: {'action': 'add_evidencia', 'id': id, 'record': record},
+                    success: function(data) {
+                        $.unblockUI();
+                        if (data.result == 'ok') {
+                            $(".panelbody").html(data.data);
+                            $("#itemspanel").modal({backdrop:'static', width: '900px'}).modal('show');
+                        } else {
+                            smoke.alert(data.mensaje);
+                        }
+                    },
+                    error: function() {
+                        $.unblockUI();
+                        smoke.alert("Error de conexión.");
+                    },
+                    dataType: "json"
+                });
+            });
+        } );
+    </script>
+{% endblock %}
+{% block canvas %}
+    <div class='row-fluid'>
+        <div class='span12'>
+            <h4>{{ title }} POA:</h4>
+            {#            <h5>POA: {% if p.archivo %}<a href="{{ p.archivo.url }}" target="_blank"><img src="/static/images/pdf.png"></a>{% endif %}</h5>#}
+        </div>
+    </div>
+    <div class='row-fluid'>
+        <div class='span12'>
+
+            <table class='table table-bordered' cellpadding="0" cellspacing="0" id="example">
+                <thead>
+                <tr>
+                    <th>MEDIOS DE VERIFICACIÓN</th>
+                    <th>Grupos</th>
+                    <th>Grupos</th>
+                    <th>Grupos</th>
+                    <th>Grupos</th>
+                    <th width="70px" style="text-align: center; font-weight: bold;">{{ mes }}</th>
+                    <th width="70px"></th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for documento in acciondocumento %}
+                    <tr>
+                        <td>
+                            <ul>
+                                <ul>
+                                    <ul>
+                                        <ul>
+                                            <a><i class="fa fa-angle-double-right"></i></a>
+                                            {{ documento.acciondocumento.descripcion }}
+                                        </ul>
+                                    </ul>
+                                </ul>
+                            </ul>
+                        </td>
+                        <td>
+                            <a ><i class="fa fa-asterisk"></i></a> <strong>OBJ. ESTRATÉGICO: -{{ documento.acciondocumento.indicadorpoa.objetivooperativo.objetivotactico.objetivoestrategico.carrera|default_if_none:"" }}-{{ documento.acciondocumento.indicadorpoa.objetivooperativo.objetivotactico.objetivoestrategico.programa }}</strong> - {{ documento.acciondocumento.indicadorpoa.objetivooperativo.objetivotactico.objetivoestrategico }}
+                        </td>
+                        <td>
+                            <ul>
+                                <a ><i class="fa fa-caret-right"></i></a> <strong>OBJ. OPERATIVO:</strong> -{{ documento.acciondocumento.indicadorpoa.objetivooperativo.objetivotactico }}
+                            </ul>
+                        </td>
+                        <td>
+                            <ul>
+                                <ul>
+                                    <a ><i class="fa fa-caret-right"></i></a> <strong>INDICADOR: </strong>{{ documento.acciondocumento.indicadorpoa.objetivooperativo }}
+                                </ul>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul>
+                                <ul>
+                                    <ul>
+                                        <a ><i class="fa fa-caret-right"></i></a> <strong>ACTIVIDAD: -{{ documento.acciondocumento.indicadorpoa }}</strong>
+                                    </ul>
+                                </ul>
+                            </ul>
+                        </td>
+                        <td style="text-align: center; background-color: yellow;">{{ documento.inicio|nombremescorto }} - {{ documento.fin|nombremescorto }}</td>
+                        <td style="text-align: center"><a href="javascript:;" class="btn btn-{% if documento.record.archivo %}success{% else %}warning{% endif %} btn-mini cargararchivo" idr="{{ documento.id }}" record="{% if documento.record %}{{ documento.record.id }}{% else %}0{% endif %}"><i class="fa fa-file"></i></a></td>
+                        <td style="text-align: center">{% if documento.record.archivo %}<a class="btn btn-default" href="{{ documento.record.archivo.url }}" target="_blank"><i class="fa fa-file-pdf-o"></i> Descarga</a>{% endif %}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+                <tfoot>
+                <tr>
+                    <th style="text-align: center; font-weight: bold;">MEDIOS DE VERIFICACIÓN</th>
+                    <th style="text-align: center; font-weight: bold;">GRUPOS</th>
+                    <th style="text-align: center; font-weight: bold;">GRUPOS</th>
+                    <th style="text-align: center; font-weight: bold;">GRUPOS</th>
+                    <th style="text-align: center; font-weight: bold;">GRUPOS</th>
+                    <th style="text-align: center; font-weight: bold;">{{ mes }}</th>
+                    <th></th>
+                    <th></th>
+                </tr>
+
+                </tfoot>
+            </table>
+        </div>
+    </div>
+    <div class="modal fade static" id="itemspanel" style="display: none;">
+        <div class="modal-header">
+            <table border="0" width="100%" style="background-color: transparent">
+                <tr>
+                    <td style="width: 80%"><h3 class="paneltitle">Subir Evidencia</h3></td>
+                    <td><a href="javascript:;" id="cerrarpanel" class="btn btn-danger btn-mini pull-right"><i class="fa fa-remove"></i></a></td>
+                </tr>
+            </table>
+        </div>
+        <div class="modal-body panelbody">
+        </div>
+    </div>
+    <div class="modal fade static" id="itemspanelobs" style="display: none;">
+        <div class="modal-header">
+            <table border="0" width="100%" style="background-color: transparent">
+                <tr>
+                    <td style="width: 80%"><h3 class="paneltitleobs">Observación</h3></td>
+                    <td><a href="javascript:;" id="cerrarpanelobs" class="btn btn-danger btn-mini pull-right"><i class="fa fa-remove"></i></a></td>
+                </tr>
+            </table>
+        </div>
+        <div class="modal-body panelbodyobs" align="justify">
+        </div>
+    </div>
+    <div class="modal fade static" id="itemspanelmedio" style="display: none;">
+        <div class="modal-header">
+            <table border="0" width="100%" style="background-color: transparent">
+                <tr>
+                    <td style="width: 80%"><h3 class="paneltitlemedio">Observación</h3></td>
+                    <td><a href="javascript:;" id="cerrarpanelmedio" class="btn btn-danger btn-mini pull-right"><i class="fa fa-remove"></i></a></td>
+                </tr>
+            </table>
+        </div>
+        <div class="modal-body panelbodymedio" align="justify">
+        </div>
+    </div>
+{% endblock %}

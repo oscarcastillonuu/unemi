@@ -1,0 +1,443 @@
+{% extends "basebs.html" %}
+{% load humanize %}
+{% load sga_extras %}
+{% block heading %}
+    <link rel="stylesheet" href="/static/eventostyle.css">
+    <link rel="stylesheet" href="/static/eventoframework.css">
+    <script type="text/javascript" src='/static/js/select2.js?v=1.0.0'></script>
+    <link type='text/css' rel='stylesheet' href="/static/css/select2.css?v=1.0.0"/>
+    <style>
+        .btn_seleccionado{
+            background: #0a677e !important;
+        {#color: #0c0c0c !important;#}
+        }
+        .bordecaja {
+            border: .07em solid rgba(0, 0, 0, .2);
+            color: white;
+        !important;
+        }
+        .course-path-card {
+            background-color: #0b2f44;
+        }
+        .bordestabla {
+            border: .07em solid rgba(0, 0, 0, .1);
+            color: #000000;
+            box-shadow: 1px 1px 3px #999;
+        !important;
+        }
+        .course-path-card-footer {
+            justify-content: normal;
+        !important;
+        }
+    </style>
+
+    <script>
+        $(function () {
+            $("select").select2({minimumResultsForSearch: 10 });
+
+            $(function () {
+                $('.btntabla').click(function () {
+                    let panel = $(this).attr('panel');
+                    console.log(panel);
+                    switch (panel) {
+                        case '2':
+                            location.href = `alu_proyectovinculacion?panel=${panel}`;
+                            break
+                        case '3':
+                            location.href = `alu_proyectovinculacion?panel=${panel}`;
+                            break
+                        default:
+                            location.href = `alu_proyectovinculacion`;
+                            break
+                    }
+                });
+            });
+
+            $("#search").click(function () {
+                var term = $("#searchinput").val().toUpperCase();
+                location.href = "/alu_proyectovinculacion?s=" + term;
+            });
+
+            dialog_obs = $("#resultado");
+            $("#dialog_close_obse").click(function () {
+                dialog_obs.modal('hide');
+            });
+
+
+            $('#searchinput').keyup(function (e) {
+                if (e.keyCode == 13) {
+                    $("#search").trigger("click");
+                }
+            });
+
+            function mostrar_resultado(id) {
+                bloqueointerface();
+                $.ajax({
+                    type: "GET",
+                    url: "/alu_proyectovinculacion",
+                    data: {'id': id, 'action': 'resultado'},
+                    success: function (data) {
+                        $.unblockUI();
+                        $("#contenido_resultado").html(data);
+                        dialog_obs.modal("show");
+                    },
+                    dataType: "html"
+                });
+            }
+        });
+    </script>
+{% endblock %}
+{% block canvas %}
+    {% if matricula.nivelmalla.orden < nivelmallla  %}
+        <div class="row-fluid">
+            <div class="alert alert-info span12">
+                <strong>¡Información! </strong>
+                <strong> Estimado estudiante, usted no se encuentra en el nivel correspondiente para realizar prácticas preprofesionales de servicio comunitario, consultar en su malla curricular.</strong>
+            </div>
+        </div>
+    {% endif %}
+
+    <div class="row-fluid">
+        <div class="tabbable panelvinculacion">
+            {#        MIS PROYECTOS DE VINCULACION#}
+            <a class="tabs btntabla {% if not panel %}active{% endif %}" href="javascript:;" data-toggle="tabs">
+                <div class='span2' style="margin: 5px;">
+                    <div class="course-path-card  uk-width-1-1 transition-3d-hover bordecaja {% if not panel %}btn_seleccionado{% endif %}" style="cursor:pointer;">
+                        <div class="course-path-card-contents">
+                            <h4><b style="color: white">MIS PROYECTOS</b></h4>
+                            <div style="text-align: left; font-size: 11px; color: white; !important;">
+                                <b><i class="fa fa-american-sign-language-interpreting"></i> Mis Proyectos: <span class="badge bg-info">{{ cantidad_misproyectos }}</span></b>
+                                {#                                <b><i class="fa fa-clock-o"></i> Horas Cumplidas: </b> <span class="badge bg-gradient-success">0</span><br>#}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </a>
+
+            {#        PROYECTOS APERTURADOS#}
+            <a class="tabs btntabla {% if panel == '2' %}active{% endif %}" href="javascript:;" panel="2" data-toggle="tabs">
+                <div class='span2' style="margin: 5px;">
+                    <div class="course-path-card  uk-width-1-1 transition-3d-hover bordecaja {% if panel == '2' %}btn_seleccionado{% endif %}" style="cursor:pointer;">
+                        <div class="course-path-card-contents">
+                            <h4><b style="color: white">APERTURADOS</b></h4>
+                            <div style="text-align: left; font-size: 11px; color: white; !important;">
+                                <b><i class="fa fa-american-sign-language-interpreting"></i> Aperturados: <span class="badge bg-info">{{ cantidad_proyectos }}</span></b>
+                                {#                                <b><i class=""></i>  </b> <span class="badge bg-gradient-success"></span><br>#}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </a>
+            {#        SOLICITUDES#}
+            <a class="tabs btntabla {% if panel == '3' %}active{% endif %}" href="javascript:;" panel="3" data-toggle="tabs">
+                <div class='span2' style="margin: 5px;">
+                    <div class="course-path-card  uk-width-1-1 transition-3d-hover bordecaja {% if panel == '3' %}btn_seleccionado{% endif %}" style="cursor:pointer;">
+                        <div class="course-path-card-contents">
+                            <h4><b style="color: white">SOLICITUDES</b></h4>
+                            <div style="text-align: left; font-size: 11px; color: white; !important;">
+                                <b><i class="fa fa-folder-open"></i> Solicitudes: <span class="badge bg-info">{{ cantidad_solicitudes }}</span></b>
+                                {#                                <b><i class=""></i>  </b> <span class="badge bg-gradient-success"></span><br>#}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </a>
+
+        </div>
+        <br>
+        <div class="tab-content {% if not panel %}active{% endif %}">
+            <div class="tab-pane {% if not panel %}active{% endif %}" id="1">
+                <div class='row-fluid'>
+                    <div class='span12'>
+                        <h4>{{ title1 }}</h4>
+                    </div>
+                </div>
+                <div class="row-fluid">
+                    <div class='span12'>
+                        <table class='table table-bordered bordestabla uk-width-1-1'>
+                            <thead>
+                            <tr>
+                                <th colspan="8">Mis Participaciones</th>
+                            </tr>
+                            <tr>
+                                <th rowspan="2" style="text-align: center"><i class="fa fa-american-sign-language-interpreting"></i> Datos del Proyecto</th>
+                                <th colspan="2" style="text-align: center"><i class="fa fa-users"></i> Información de participantes</th>
+                                <th rowspan="2" style="text-align: center"><i class="fa fa-clock-o"></i> Horas</th>
+                                <th rowspan="2" style="text-align: center"> Acción</th>
+                            </tr>
+                            <tr>
+                                <th>Docentes</th>
+                                <th>Correos</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for miproyecto in misproyectos %}
+                                <tr>
+                                    <td>
+                                        <b><i class="fa fa-american-sign-language-interpreting"></i> Proyecto:</b><br>
+                                        {{ miproyecto.proyecto.nombre }}<br>
+                                        <b><span class="badge badge-info">PROYECTO {{ miproyecto.proyecto.get_aprobacion_display }}</span></b>
+                                        <b><span class="badge badge-success">DURACIÓN: {{ miproyecto.proyecto.tiempo_duracion_horas }} HORAS</span></b><br>
+                                        <b><i class="fa fa-calendar-o"></i> Año de Ejecución:
+                                        </b>{{ miproyecto.proyecto.fechainicio| date:'Y' }}<br>
+                                        <b><i class="fa fa-calendar-o"></i> Fecha de Inicio:
+                                        </b>{{ miproyecto.proyecto.fechainicio| date:'Y-m-d' }}<br>
+                                        <b><i class="fa fa-calendar-o"></i> Fecha fin: </b>
+                                        [<b>Planificada:</b> {{ miproyecto.proyecto.fechaplaneacion| date:'Y-m-d' }}]
+                                        -
+                                        [<b>Real:</b> {{ miproyecto.proyecto.fechareal|date:'Y-m-d'|default_if_none:"S/I" }}]
+                                        <br>
+                                        <b><span class="badge badge-{% if miproyecto.estado == 0 %}warning{% elif miproyecto.estado == 1 %}success{% else %}danger{% endif %} tu" data-original-title="Estado">{{ miproyecto.get_estado_display }}</span></b>
+
+                                    </td>
+                                    <td>
+                                        {% for docentes in miproyecto.proyecto.docentes %}
+                                            {% if docentes.tipoparticipante.nombre == 'LIDERES' %}
+                                                <label class="badge badge-info" data-toggle="tooltip" style="vertical-align: middle"
+                                                       data-placement="top"
+                                                       data-original-title="LIDER">L</label>
+                                            {% else %}
+                                                <label class="badge badge-primary" data-toggle="tooltip" style="vertical-align: middle"
+                                                       data-placement="top"
+                                                       data-original-title="PROMOTOR">P</label>
+                                            {% endif %}
+                                            {{ docentes.profesor }} <br>
+                                        {% endfor %}
+                                    </td>
+                                    <td style="">
+                                        {% for docentes in miproyecto.proyecto.docentes %}
+                                            {{ docentes.profesor.persona.emailinst }} <br>
+                                        {% endfor %}
+                                    </td>
+                                    <td style="text-align: center">
+                                        <span class="badge badge-success">{{ miproyecto.horas }}</span>
+                                    </td>
+                                    <td style="text-align: center">
+                                        {% if miproyecto.proyecto.aprobacion == 1 %}
+                                            <div class="btn-group">
+                                                <a class="btn btn-mini dropdown-toggle" data-toggle="dropdown"
+                                                   href="javascript:;">Acciones<span class="caret"></span></a>
+                                                <ul class="dropdown-menu pull-right">
+                                                    <li><a href="?action=cargarinformesvinculacion&id={{ miproyecto.id }}"
+                                                           style="text-align: left"><i class="fa fa-upload"></i> Registrar
+                                                        informes de cumplimiento</a></li>
+                                                </ul>
+                                            </div>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="8" STYLE="text-align: center">
+                                        NO PARTICIPA EN PROYECTOS
+                                    </td>
+
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-pane {% if panel == '2' %}active{% endif %}" id="2">
+                <div class='row-fluid'>
+                    <div class='span12'>
+                        <h4>{{ title2 }}</h4>
+                    </div>
+                </div>
+                <div class="row-fluid">
+                    <div class='span12'>
+                        <table class='table table-bordered bordestabla uk-width-1-1'>
+                            <thead>
+                            <tr>
+                                <th colspan="8">Proyectos Aperturados</th>
+                            </tr>
+                            <tr>
+                                <th rowspan="2" style="text-align: center"><i class="fa fa-american-sign-language-interpreting"></i> Datos del Proyecto</th>
+                                {#                                <th colspan="2" style="text-align: center">Periodo de inscripción</th>#}
+                                <th colspan="2" style="text-align: center"><i class="fa fa-users"></i> Información de docentes</th>
+                                <th colspan="2" style="text-align: center"><i class="fa fa-ticket"></i> Cupos</th>
+                                <th rowspan="2" style="text-align: center"> Acción</th>
+
+                            </tr>
+                            <tr>
+                                <th>Docentes</th>
+                                <th>Correos</th>
+                                <th style="width: 120px; text-align: center">Aperturados</th>
+                                <th style="width: 120px; text-align: center">Disponible</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% if matricula.nivelmalla.orden >= nivelmallla %}
+                                {% for proyecto in proyectos %}
+                                    <tr>
+                                        <td>
+
+                                            <b>PROYECTO: {{ proyecto.periodo.proyecto.nombre }}</b><br>
+                                            <b><span class="badge badge-success">DURACIÓN: {{ proyecto.periodo.proyecto.tiempo_duracion_horas }} HORAS</span></b><br>
+                                            <b><i class="fa fa-calendar-o"></i> Año de Ejecución:
+                                            </b>{{ proyecto.periodo.proyecto.fechainicio| date:'Y' }}<br>
+                                            <b><i class="fa fa-calendar-o"></i> Fecha de Inicio:
+                                            </b>{{ proyecto.periodo.proyecto.fechainicio| date:'Y-m-d' }}<br>
+                                            <b><i class="fa fa-calendar-o"></i> Fecha fin: </b>
+                                            [<b>Planificada:</b> {{ proyecto.periodo.proyecto.fechaplaneacion| date:'Y-m-d' }}]
+                                            -
+                                            [<b>Real:</b> {{ proyecto.periodo.proyecto.fechareal|date:'Y-m-d'|default_if_none:"S/I" }}]<br>
+
+                                            <b><i class="fa fa-calendar-o"></i> Periodo de inscripción:</b><br>
+                                            <b>Desde:</b> <label class="label label-success" >{{proyecto.periodo.fechainicio| date:'Y-m-d' }}</label><br>
+                                            <b>Hasta:</b> <label class="label label-success">{{ proyecto.periodo.fechafin| date:'Y-m-d' }}</label><br>
+
+                                        </td>
+                                        <td>
+                                            {% for docentes in proyecto.periodo.proyecto.docentes %}
+                                                {% if docentes.tipoparticipante.nombre == 'LIDERES' %}
+                                                    <label class="label label-success" data-toggle="tooltip"
+                                                           data-placement="top"
+                                                           data-original-title="LIDER">L</label>
+                                                {% else %}
+                                                    <label class="label label-warning" data-toggle="tooltip"
+                                                           data-placement="top"
+                                                           data-original-title="PROMOTOR">P</label>
+                                                {% endif %}
+                                                {{ docentes.profesor }} <br>
+                                            {% endfor %}
+                                        </td>
+
+                                        <td>
+                                            {% for docentes in proyecto.periodo.proyecto.docentes %}
+                                                {{ docentes.profesor.persona.emailinst }} <br>
+                                            {% endfor %}
+                                        </td>
+                                        <td style="text-align: center">
+                                            <span class="label label-info">{{ proyecto.cupos }}</span>
+                                        </td>
+                                        <td style="text-align: center">
+                                            {% with cupos=proyecto|call:'diferencia' %}
+                                                <span class="label label-warning">{{ cupos }}</span>
+                                            {% endwith %}
+                                        </td>
+                                        <td style="text-align: center">
+
+                                            {% if  not solicitudes %}
+                                                {% with cupos=proyecto|call:'diferencia' %}
+                                                    {% if cupos > 0 %}
+                                                        <a nhref="/alu_proyectovinculacion?action=add&id={{ proyecto.periodo.proyecto.id }}&periodo={{ proyecto.periodo.pk }}"
+                                                           class='btn btn-success confirmacionmodal'><span
+                                                                class="fa fa-plus "></span> Inscribir</a>
+                                                    {% endif %}
+                                                {% endwith %}
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="8" STYLE="text-align: center">
+                                            NO EXISTEN PROYECTOS APERTURADOS
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-pane {% if panel == '3' %}active{% endif %}" id="3">
+                <div class='row-fluid'>
+                    <div class='span12'>
+                        <h4>{{ title3 }}</h4>
+                    </div>
+                </div>
+
+                <div class="row-fluid">
+                    <div class='span12'>
+                        <table class='table table-bordered bordestabla uk-width-1-1'>
+                            <thead>
+                            <tr>
+                                <th colspan="7">Proyectos Solicitados</th>
+                            </tr>
+                            <tr>
+                                <th rowspan="2" style="text-align: center"><i class="fa fa-american-sign-language-interpreting"></i> Datos del Proyecto</th>
+                                <th colspan="2" style="text-align: center"><i class="fa fa-users"></i> Información de participantes</th>
+                                <th rowspan="2" style="text-align: center"><i class="fa fa-clock-o"></i> Estado inscripción</th>
+                                <th rowspan="2" style="text-align: center"> Acción</th>
+                            </tr>
+                            <tr>
+                                <th>Docentes</th>
+                                <th>Correos</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for so in solicitudes %}
+                                <tr>
+                                    <td>
+                                        <b><i class="fa fa-american-sign-language-interpreting"></i> Proyecto:</b><br>
+                                        {{ so.proyectovinculacion.nombre }}<br>
+                                        {#                                        <b><span class="badge badge-info">PROYECTO {{ so.proyectovinculacion.get_aprobacion_display }}</span></b>#}
+                                        <b><span class="badge badge-success">DURACIÓN: {{ so.proyectovinculacion.tiempo_duracion_horas }} HORAS</span></b><br>
+                                        <b><i class="fa fa-calendar-o"></i> Año de Ejecución:
+                                        </b>{{ so.proyectovinculacion.fechainicio| date:'Y' }}<br>
+                                        <b><i class="fa fa-calendar-o"></i> Fecha de Inicio:
+                                        </b>{{ so.proyectovinculacion.fechainicio| date:'Y-m-d' }}<br>
+                                        <b><i class="fa fa-calendar-o"></i> Fecha fin: </b>
+                                        [<b>Planificada:</b> {{ so.proyectovinculacion.fechaplaneacion| date:'Y-m-d' }}]
+                                        -
+                                        [<b>Real:</b> {{ so.proyectovinculacion.fechareal|date:'Y-m-d'|default_if_none:"S/I" }}]
+
+                                    </td>
+                                    <td>
+                                        {% for docentes in so.proyectovinculacion.docentes %}
+                                            {% if docentes.tipoparticipante.nombre == 'LIDERES' %}
+                                                <label class="badge badge-info" data-toggle="tooltip" style="vertical-align: middle"
+                                                       data-placement="top"
+                                                       data-original-title="LIDER">L</label>
+                                            {% else %}
+                                                <label class="badge badge-primary" data-toggle="tooltip" style="vertical-align: middle"
+                                                       data-placement="top"
+                                                       data-original-title="PROMOTOR">P</label>
+                                            {% endif %}
+                                            {{ docentes.profesor }} <br>
+                                        {% endfor %}
+                                    </td>
+                                    <td style="">
+                                        {% for docentes in so.proyectovinculacion.docentes %}
+                                            {{ docentes.profesor.persona.emailinst }} <br>
+                                        {% endfor %}
+                                    </td>
+                                    <td style="text-align: center"><b><span
+                                            class="badge badge-{% if so.estado == 1 %}info{% elif so.estado == 2 %}success{% else %}important{% endif %} tu"
+                                            data-original-title="Estado">{{ so.get_estado_display }}</span></b><br>
+                                        {% if so.estado == 3 %}
+                                            <b>Observación:</b> {{ so.observacion }}
+                                        {% endif %}
+                                    </td>
+
+                                    <td style="text-align: center">
+                                        {% if so.estado == 1 %}
+                                            <a class="btn btn-mini btn-danger list-group-item eliminacionmodal tu"
+                                               title="Eliminar"
+                                               nhref="/alu_proyectovinculacion?action=delete&id={{ so.id }}"><i
+                                                    class="fa fa-remove"></i></a>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4">
+                                        NO EXISTEN SOLICITUDES REGISTRADAS
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+{% endblock %}
+

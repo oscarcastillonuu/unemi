@@ -1,0 +1,417 @@
+{% load humanize %}
+{% load sga_extras %}
+{% block heading %}
+    <script type="text/javascript">
+        $(function() {
+
+        });
+    </script>
+{% endblock %}
+{% block canvas %}
+    <div class="row-fluid">
+        {# PESTAÑAS #}
+        <ul class="nav nav-tabs" role="tablist">
+            <li class="nav-item">
+                <a class="nav-link active" data-bs-toggle="tab" href="#p1">Datos Personales y Formación Académica</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-bs-toggle="tab" href="#p2">Experiencia</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-bs-toggle="tab" href="#p3">Producción científica</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-bs-toggle="tab" href="#p4">Proyectos de investigación</a>
+            </li>
+        </ul>
+        {# PESTAÑAS #}
+        {# CONTENIDO DE CADA PESTAÑA #}
+        <div class="tab-content px-0">
+            <div id="p1" class="container tab-pane active px-0"><br>
+                <table class='table table-bordered'>
+                    <thead class="table-light">
+                        <tr>
+                            <th colspan="6">Datos Personales</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Nombre completo:</strong></td>
+                            <td colspan="5">{{ integrante.nombre_completo_inverso }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Sexo:</strong></td>
+                            <td>{% if integrante.sexo %}{{ integrante.sexo }}{% endif %}</td>
+                            <td><strong>Fecha Nacimiento:</strong></td>
+                            <td>{{ integrante.nacimiento|date:'d-m-Y' }}</td>
+                            <td><strong>Nacionalidad:</strong></td>
+                            <td>{{ integrante.nacionalidad }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Tipo Identificación:</strong></td>
+                            <td colspan="2">{% if integrante.cedula %}CÉDULA{% else %}PASAPORTE{% endif %}</td>
+                            <td><strong>Número Identificación:</strong></td>
+                            <td colspan="2">{% if integrante.cedula %}{{ integrante.cedula }}{% else %}{{ integrante.pasaporte }}{% endif %}</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <table class='table table-bordered table-striped'>
+                    <thead class="table-light">
+                        <tr>
+                            <th colspan="4">Formación Académica</th>
+                        </tr>
+                        <tr>
+                            <th style="text-align: center; width: 40%;">Título</th>
+                            <th style="text-align: center; width: 10%;">Año</th>
+                            <th style="text-align: center; width: 40%;">Institución</th>
+                            <th style="text-align: center; width: 10%;">País</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for formacion in formacionacademica %}
+                            <tr>
+                                <td style="text-align: justify">{{ formacion.titulo.nombre }}</td>
+                                <td style="text-align: center">{{ formacion.fechaobtencion|date:"Y" }}</td>
+                                <td style="text-align: justify">{{ formacion.institucion.nombre }}</td>
+                                <td style="text-align: justify">{{ formacion.pais.nombre }}</td>
+                            </tr>
+                        {% empty %}
+                            <td colspan="4">NO TIENE REGISTRADO TÍTULOS EN LA HOJA DE VIDA</td>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div id="p2" class="container tab-pane fade px-0"><br>
+                <table class='table table-bordered table-striped'>
+                    <thead class="table-light">
+                        <tr>
+                            <th colspan="4">Experiencia Laboral</th>
+                        </tr>
+                        <tr>
+                            <th style="text-align: center; width: 50%;">Cargo</th>
+                            <th style="text-align: center; width: 30%;">Institución</th>
+                            <th style="text-align: center; width: 10%;">Desde</th>
+                            <th style="text-align: center; width: 10%;">Hasta</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if experienciaunemi or experiencia %}
+                            {% for exp in experienciaunemi %}
+                                <tr>
+                                    <td style="text-align: justify">{{ exp.cargo }}</td>
+                                    <td style="text-align: justify">UNIVERSIDAD ESTATAL DE MILAGRO</td>
+                                    <td style="text-align: center">{{ exp.fechainicio|date:"d-m-Y" }}</td>
+                                    <td style="text-align: center">&nbsp;</td>
+                                </tr>
+                            {% endfor %}
+                            {% for exp in experiencia %}
+                                <tr>
+                                    <td style="text-align: justify">{{ exp.cargo }}</td>
+                                    <td style="text-align: justify">{{ exp.institucion }}</td>
+                                    <td style="text-align: center">{{ exp.fechainicio|date:"d-m-Y" }}</td>
+                                    <td style="text-align: center">{{ exp.fechafin|date:"d-m-Y" }}</td>
+                                </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr><td colspan="4">NO EXISTEN REGISTROS DE EXPERIENCIA LABORAL EN LA HOJA DE VIDA</td></tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+            <div id="p3" class="container tab-pane fade px-0"><br>
+                <table class='table table-bordered table-striped'>
+                    <thead class="table-light">
+                        <tr>
+                            <th colspan="4">Artículos</th>
+                        </tr>
+                        <tr>
+                            <th style="text-align: center; width: 40%;">Artículo</th>
+                            <th style="text-align: center; width: 30%;">Revista</th>
+                            <th style="text-align: center; width: 20%;">Bases Indexadas</th>
+                            <th style="text-align: center; width: 10%;">Fecha Publicación</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% if articulos or articulos_externa %}
+                        {% if articulos %}
+                            {% for reg in articulos %}
+                                <tr>
+                                    <td style="text-align: justify;">{{ reg.nombre|upper }}</td>
+                                    <td style="text-align: justify">{{ reg.revista.nombre|upper }}</td>
+                                    <td style="text-align: center">
+                                        {% with listabasesindexadas=reg|call:'basesartculos' %}
+                                            {% for listabases in listabasesindexadas %}
+                                                {% if forloop.counter > 1 %}
+                                                    ,
+                                                {% endif %}
+                                                {{ listabases.baseindexada }}
+                                            {% endfor %}
+                                        {% endwith %}
+                                    </td>
+                                    <td style="text-align: center">{{ reg.fechapublicacion|date:"Y-m-d" }}</td>
+                                </tr>
+                            {% endfor %}
+                        {% endif %}
+                        {% if articulos_externa %}
+                            {% for reg in articulos_externa %}
+                                <tr>
+                                    <td style="text-align: justify;">{{ reg.titulo|upper }}</td>
+                                    <td style="text-align: justify">{{ reg.revista|upper }}</td>
+                                    <td style="text-align: center">{{ reg.baseindexada }}</td>
+                                    <td style="text-align: center">{{ reg.fechapublicacion|date:"Y-m-d" }}</td>
+                                </tr>
+                            {% endfor %}
+                        {% endif %}
+                    {% else %}
+                        <tr>
+                            <td style="text-align: center" colspan="4">NO EXISTEN REGISTROS</td>
+                        </tr>
+                    {% endif %}
+                    </tbody>
+                </table>
+
+                <table class='table table-bordered table-striped'>
+                    <thead class="table-light">
+                        <tr>
+                            <th colspan="4">Ponencias</th>
+                        </tr>
+                        <tr>
+                            <th style="text-align: center; width: 35%;">Ponencia</th>
+                            <th style="text-align: center; width: 35%;">Evento</th>
+                            <th style="text-align: center; width: 20%;">País/Ciudad</th>
+                            <th style="text-align: center; width: 10%;">Fecha Congreso</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% if ponencias or ponencias_externa %}
+                        {% if ponencias %}
+                            {% for reg in ponencias %}
+                                <tr>
+                                    <td style="text-align: justify;">{{ reg.nombre|upper }}</td>
+                                    <td style="text-align: justify">{{ reg.evento|upper }}</td>
+                                    <td style="text-align: center">{{ reg.pais.nombre|upper }} / {{ reg.ciudad|upper }}</td>
+                                    <td style="text-align: center">{{ reg.fechainicio|date:"Y-m-d" }}</td>
+                                </tr>
+                            {% endfor %}
+                        {% endif %}
+                        {% if ponencias_externa %}
+                            {% for reg in ponencias_externa %}
+                                <tr>
+                                    <td style="text-align: justify;">{{ reg.titulo|upper }}</td>
+                                    <td style="text-align: justify">{{ reg.congreso|upper }}</td>
+                                    <td style="text-align: center">{{ reg.pais.nombre|upper }} / {{ reg.ciudad|upper }}</td>
+                                    <td style="text-align: center">{{ reg.fechainicio|date:"Y-m-d" }}</td>
+                                </tr>
+                            {% endfor %}
+                        {% endif %}
+                    {% else %}
+                        <tr>
+                            <td style="text-align: center" colspan="4">NO EXISTEN REGISTROS</td>
+                        </tr>
+                    {% endif %}
+                    </tbody>
+                </table>
+
+                <table class='table table-bordered table-striped'>
+                    <thead class="table-light">
+                        <tr>
+                            <th colspan="4">Libros</th>
+                        </tr>
+                        <tr>
+                            <th style="text-align: center; width: 20%;">Código ISBN</th>
+                            <th style="text-align: center; width: 40%;">Título</th>
+                            <th style="text-align: center; width: 30%;">Editorial</th>
+                            <th style="text-align: center; width: 10%;">Fecha Publicación</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% if libros or libros_externa %}
+                        {% if libros %}
+                            {% for reg in libros %}
+                                <tr>
+                                    <td style="text-align: justify;">{{ reg.codisbn|upper }}</td>
+                                    <td style="text-align: justify;">{{ reg.nombrelibro|upper }}</td>
+                                    <td style="text-align: justify">{{ reg.editorial }}</td>
+                                    <td style="text-align: center">{{ reg.fechapublicacion|date:"Y-m-d" }}</td>
+                                </tr>
+                            {% endfor %}
+                        {% endif %}
+                        {% if libros_externa %}
+                            {% for reg in libros_externa %}
+                                <tr>
+                                    <td style="text-align: justify;">{{ reg.codigoisbn|upper }}</td>
+                                    <td style="text-align: justify;">{{ reg.titulolibro|upper }}</td>
+                                    <td style="text-align: justify">{{ reg.editorial }}</td>
+                                    <td style="text-align: center">{{ reg.fechapublicacion|date:"Y-m-d" }}</td>
+                                </tr>
+                            {% endfor %}
+                        {% endif %}
+                    {% else %}
+                        <tr>
+                            <td style="text-align: center" colspan="4">NO EXISTEN REGISTROS</td>
+                        </tr>
+                    {% endif %}
+                    </tbody>
+                </table>
+
+                <table class='table table-bordered table-striped'>
+                    <thead class="table-light">
+                        <tr>
+                            <th colspan="5">Capítulos de Libros</th>
+                        </tr>
+                        <tr>
+                            <th style="text-align: center; width: 20%;">Código ISBN</th>
+                            <th style="text-align: center; width: 30%;">Título Capítulo</th>
+                            <th style="text-align: center; width: 30%;">Título Libro</th>
+                            <th style="text-align: center; width: 10%;">Editorial</th>
+                            <th style="text-align: center; width: 10%;">Fecha Publicación</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% if capitulos or capitulos_externa %}
+                        {% if capitulos %}
+                            {% for reg in capitulos %}
+                                <tr>
+                                    <td style="text-align: justify;">{{ reg.codisbn|upper }}</td>
+                                    <td style="text-align: justify;">{{ reg.titulocapitulo|upper }}</td>
+                                    <td style="text-align: justify;">{{ reg.titulolibro|upper }}</td>
+                                    <td style="text-align: justify">{{ reg.editorcompilador|upper }}</td>
+                                    <td style="text-align: center">{{ reg.fechapublicacion|date:"Y-m-d" }}</td>
+                                </tr>
+                            {% endfor %}
+                        {% endif %}
+                        {% if capitulos_externa %}
+                            {% for reg in capitulos_externa %}
+                                <tr>
+                                    <td style="text-align: justify;">{{ reg.codigoisbn|upper }}</td>
+                                    <td style="text-align: justify;">{{ reg.titulocapitulo|upper }}</td>
+                                    <td style="text-align: justify;">{{ reg.titulolibro|upper }}</td>
+                                    <td style="text-align: justify">{{ reg.editorial|upper }}</td>
+                                    <td style="text-align: center">{{ reg.fechapublicacion|date:"Y-m-d" }}</td>
+                                </tr>
+                            {% endfor %}
+                        {% endif %}
+                    {% else %}
+                        <tr>
+                            <td style="text-align: center" colspan="5">NO EXISTEN REGISTROS</td>
+                        </tr>
+                    {% endif %}
+                    </tbody>
+                </table>
+            </div>
+            <div id="p4" class="container tab-pane fade px-0"><br>
+                {% if proyectosunemi or proyectosexternos or proyectos_externa %}
+                    {% if tipopersona != 4 %}
+                        <table class='table table-bordered table-striped'>
+                            <thead class="table-light">
+                                <tr>
+                                    <th colspan="3">Proyectos de Investigación Internos</th>
+                                </tr>
+                                <tr>
+                                    <th style="text-align: center; width: 80%;">Proyecto</th>
+                                    <th style="text-align: center; width: 10%;">Fecha Inicio</th>
+                                    <th style="text-align: center; width: 10%">Fecha Fin</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            {% if proyectosunemi %}
+                                {% for reg in proyectosunemi %}
+                                    <tr>
+                                        <td style="text-align: justify;">{{ reg.proyecto.nombre|upper }}</td>
+                                        <td style="text-align: center">{{ reg.proyecto.fechainicio|date:"Y-m-d" }}</td>
+                                        <td style="text-align: center">{{ reg.proyecto.fechareal|date:"Y-m-d" }}</td>
+                                    </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td style="text-align: center" colspan="3">NO EXISTEN REGISTROS</td>
+                                </tr>
+                            {% endif %}
+                            </tbody>
+                        </table>
+
+                        <table class='table table-bordered table-striped'>
+                            <thead class="table-light">
+                                <tr>
+                                    <th colspan="4">Proyectos de Investigación Externos</th>
+                                </tr>
+                                <tr>
+                                    <th style="text-align: center; width: 50%;">Proyecto</th>
+                                    <th style="text-align: center; width: 30%;">Institución</th>
+                                    <th style="text-align: center; width: 10%;">Fecha Inicio</th>
+                                    <th style="text-align: center; width: 10%;">Fecha Fin</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            {% if proyectosexternos %}
+                                {% for reg in proyectosexternos %}
+                                    <tr>
+                                        <td style="text-align: justify;">{{ reg.nombre|upper }}</td>
+                                        <td style="text-align: justify">{{ reg.institucion|upper }}</td>
+                                        <td style="text-align: center">{{ reg.fechainicio|date:"Y-m-d" }}</td>
+                                        <td style="text-align: center">{{ reg.fechafin|date:"Y-m-d" }}</td>
+                                    </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td style="text-align: center" colspan="4">NO EXISTEN REGISTROS</td>
+                                </tr>
+                            {% endif %}
+                            </tbody>
+                        </table>
+                    {% else %}
+                        <table class='table table-bordered table-striped'>
+                            <thead class="table-light">
+                                <tr>
+                                    <th colspan="4">Proyectos de Investigación</th>
+                                </tr>
+                                <tr>
+                                    <th style="text-align: center; width: 50%;">Proyecto</th>
+                                    <th style="text-align: center; width: 30%;">Institución Patrocinadora</th>
+                                    <th style="text-align: center; width: 10%;">Fecha Inicio</th>
+                                    <th style="text-align: center; width: 10%;">Fecha Fin</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            {% if proyectos_externa %}
+                                {% for reg in proyectos_externa %}
+                                    <tr>
+                                        <td style="text-align: justify;">{{ reg.titulo|upper }}</td>
+                                        <td style="text-align: justify">{{ reg.patrocinador|upper }}</td>
+                                        <td style="text-align: center">{{ reg.fechainicio|date:"Y-m-d" }}</td>
+                                        <td style="text-align: center">{{ reg.fechafin|date:"Y-m-d" }}</td>
+                                    </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td style="text-align: center" colspan="4">NO EXISTEN REGISTROS</td>
+                                </tr>
+                            {% endif %}
+                            </tbody>
+                        </table>
+                    {% endif %}
+                {% else %}
+                    <table class='table table-bordered table-striped'>
+                        <thead class="table-light">
+                            <tr>
+                                <th colspan="4">Proyectos</th>
+                            </tr>
+                            <tr>
+                                <th style="text-align: center; width: 50%;">Proyecto</th>
+                                <th style="text-align: center; width: 30%;">Institución</th>
+                                <th style="text-align: center; width: 10%;">Fecha Inicio</th>
+                                <th style="text-align: center; width: 10%;">Fecha Fin</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td style="text-align: center" colspan="4">NO EXISTEN REGISTROS</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                {% endif %}
+            </div>
+        </div>
+        {# CONTENIDO DE CADA PESTAÑA #}
+    </div>
+{% endblock %}

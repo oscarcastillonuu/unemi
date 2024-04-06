@@ -1,0 +1,65 @@
+{% load sga_extras %}
+{% block replace_id %}
+    <input type="hidden" name="id" id="id_objeto" value="{{ id|encrypt }}"/>
+    <input type="hidden" name="idp" id="id_padre" value="{{ idp|encrypt }}"/>
+{% endblock %}
+<input type="hidden" id="id_action" name="action" value="{{ action }}"/>
+{% block header_info %}{% endblock %}
+<div id="contentForm" class="row {% block class_content %}{% endblock %}">
+    {% block block_form %}
+            {% if not seccionado %}
+                {% include 'ajaxformmodal_seccion.html' %}
+            {% else %}
+                <div class="{% block col_lg_left %}col-lg-6{% endblock %}">
+                    <div class="row">
+                        {% include 'ajaxformmodal_seccion.html' %}
+                        {% block block_form_seccion_left %}{% endblock %}
+                    </div>
+                </div>
+                <div class="{% block col_lg_rigth %}col-lg-6{% endblock %}">
+                    {% block block_form_seccion %}{% endblock %}
+                </div>
+            {% endif %}
+    {% endblock %}
+</div>
+{% block extra_input %}{% endblock %}
+{% block replace_button %}
+    <div class="row modal-footer px-0 border-0 pt-3">
+        <div class="col-12 {% block button_align %}text-end{% endblock %} m-0">
+            {% block extra_button %}{% endblock %}
+            <button type="submit" id="submit" class="btn btn-orange fs-5 px-5"><i class="fa fa-check-circle"></i> Guardar
+            </button>
+            <a href="javascript:void(0)" class="btn btn-cian-secondary fs-5 px-5" data-bs-dismiss="modal"> <i
+                    class="fa fa-close"></i> Cancelar</a>
+        </div>
+    </div>
+{% endblock %}
+{% block extra_input_b %}{% endblock %}
+
+<script>
+    $(function () {
+        $.fn.select2.defaults.set('language', 'es');
+        $("#contentForm .select2").select2({width: '100%', placeholder: 'Seleccione una opción...', minimumResultsForSearch: 5})
+        if (typeof cargarCkeditor === 'function') {
+            cargarCkeditor()
+        }
+        sumaNumeroResta($('.input_number'))
+        soloMoneyClassKeydown('.input_money')
+
+    // Version antigua mantener para formularios pasados
+        {% if switchery %}
+            cargarSwitchs()
+        {% endif %}
+    })
+
+
+</script>
+<style>
+    input[type="file"], input[type="image"], input[type="submit"], input[type="reset"], input[type="button"] {
+        width: 100%;
+    }
+    .input-group .doc_preview .svg-inline--fa {
+        vertical-align: -0.9em
+    }
+</style>
+{% block extra_js %}{% endblock %}

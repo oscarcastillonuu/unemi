@@ -1,0 +1,130 @@
+{% load sga_extras %}
+<div class='col-lg-12 d-flex justify-content-between'>
+    <div class="headtitle">
+        <h4 class="ps-1 my-0 paneltitle">Detalle de evidencia: Informe del mes de {{ evidencia.hasta|nombremes|lower }} {{ evidencia.hasta|date:"Y" }}</h4>
+        <h6>Observación: {{ evidencia.actividad|lower|capfirst }}</h6>
+    </div>
+    <button type="button" class="btn btn-close btn-default rounded-circle p-3 my-0" data-bs-dismiss="modal" aria-label="Close"></button>
+</div><br>
+<div class="container-fluid">
+    {% if historial %}
+        <h5 class="text-blue-dark"><i class="fa fa-history"></i> Historial de evidencias</h5>
+        <div class="card mb-4">
+            <div class="card-body border-top border-6 rounded-3 border-dark-info table-responsive">
+                <table class='table table-borderless' id="example">
+                    <thead class="">
+                    <tr>
+                        <th style="width: 100px">FECHA CREACIÓN</th>
+                        <th style="width: 100px">ARCHIVO</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for histo in historial %}
+                        <tr>
+                            <td style="text-align: justify">{{ histo.fecha_creacion|date:"d/m/Y H:i:s" }}</td>
+                            <td>
+                                {% if histo.archivo %}
+                                    <a class="btn btn-default tu gallerypdf" title="Archivo firmado" href="media/{{ histo.archivo }}"><img src="/static/images/pdf.png" width="18" height="18" align="absmiddle"></a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% endif %}
+    {% if listadoanexos %}
+        <h5 class="text-blue-dark"><i class="fa fa-file-archive-o"></i> Anexos</h5>
+        <div class="card mb-4">
+            <div class="card-body border-top border-6 rounded-3 border-dark-info table-responsive">
+{#                <div style="width: 100%; height: max-content; display: inline-block">#}
+{#                    <h6 style="width:100%; text-align:left; border-bottom: 1px solid #98a3ab; line-height:0.1em; margin:10px 0 20px;"><span  style="padding:0 10px; background: #f5f5f5;">Anexos</span></h6>#}
+{#                </div>#}
+                <table class='table table-borderless' id="example">
+                    <thead>
+                    <tr>
+                        <th style="width: 3%; text-align: center;">#</th>
+                        <th style="width: 49%; text-align: center;">DESCRIPCIÓN</th>
+                        <th style="width: 20%; text-align: center;">ARCHIVO</th>
+                    </tr>
+                    </thead>
+                    <tbody id="detalle_evidencias">
+                    {% for itemanexo in listadoanexos %}
+                        <tr id="fila_default_evidencia">
+                            <td style="text-align: center">{{ forloop.counter }}</td>
+                            <td style="text-align: justify">{{ itemanexo.observacion|safe|default:"" }}</td>
+                            <td style="text-align: center">
+                                <a target="_blank" href="{{ itemanexo.download_link }}" class="btn btn-success py-2 gallerypdf"><i class="fa fa-arrow-down"></i> Descargar</a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% endif %}
+    {% if historialestados %}
+        <h5 class="text-blue-dark"><i class="fa fa-traffic-light"></i> Historial de estados</h5>
+        <div class="card mb-4">
+            <div class="card-body border-top border-6 rounded-3 border-dark-info table-responsive">
+                <table class='table table-borderless ' id="example">
+                    <thead class="">
+                    <tr>
+                        <th style="width: 300px">OBSERVACIÓN</th>
+                        <th style="width: 100px">ESTADO</th>
+                        <th style="width: 150px">FECHA CREACIÓN</th>
+                        <th style="width: 200px">APROBADOR/SOLICITANTE</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for estados in historialestados %}
+                        <tr>
+                            <td style="text-align: justify">{{ estados.observacion|safe|default:"" }}</td>
+                            <td style="text-align: justify">
+                                {% if estados.estadoaprobacion == 1 %}
+                                    <span class="text-warning">Pendiente</span>
+                                {% endif %}
+                                {% if estados.estadoaprobacion == 2 %}
+                                    <span class="text-success">Aprobado</span>
+                                {% endif %}
+                                {% if estados.estadoaprobacion == 3 %}
+                                    <span class="text-important">Rechazado</span>
+                                {% endif %}
+                                {% if estados.estadoaprobacion == 4 %}
+                                    <span class="text-info">Firmado</span>
+                                {% endif %}
+                                {% if estados.estadoaprobacion == 5 %}
+                                    <span class="text-success">Legalizado</span>
+                                {% endif %}
+                            </td>
+                            <td style="text-align: justify">{{ estados.fecha_creacion|date:"d/m/Y H:i:s" }}</td>
+                            <td>
+                                {% if not estados.aprobacionpersona %}
+                                    {{ estados.usuario_creacion.persona_set.first|lower|title }}
+                                {% else %}
+                                    {{ estados.aprobacionpersona|lower|title }}
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% endif %}
+</div>
+<script>
+    $(function () {
+       $(".gallerypdf").fancybox({
+            openEffect: 'elastic',
+            closeEffect: 'elastic',
+            width: '80%',
+            autoSize: true,
+            type: 'iframe',
+            iframe: {
+                preload: false // fixes issue with iframe and IE
+            }
+        });
+    });
+</script>

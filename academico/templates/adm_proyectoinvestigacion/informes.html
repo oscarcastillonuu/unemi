@@ -1,0 +1,401 @@
+{% extends "basebs.html" %}
+{% load sga_extras %}
+{% load humanize %}
+{% block heading %}
+    <script type="text/javascript" src='/static/js/jquery.validationEngine.js?v=1.0.0'></script>
+    <script type="text/javascript" src='/static/js/jquery.validationEngine-es.js?v=1.0.0' ></script>
+    <link type='text/css' rel='stylesheet' href="/static/css/validationEngine.jquery.css?v=1.0.0"/>
+    <link href="/static/css/table-responsive.css?1.0.0" type="text/css" rel="stylesheet" />
+    <style>
+        .divider-line {
+            border-top: 1px solid lightgrey;
+            height: 2px;
+            width: auto;
+            padding: 1px;
+            margin: 5px 10px 5px 10px;
+        }
+    </style>
+
+    <script type="text/javascript">
+        $(function() {
+            var filas_evidencias = 0;
+            var registro;
+            var secuenciaevidencia = 0;
+
+            $("select").select2({minimumResultsForSearch: 5 });
+
+            $(".imprimirinforme").click(function() {
+                var id=$(this).attr('id');
+
+                bloqueointerface();
+                $.ajax({
+                    type: "POST",
+                    url: "/adm_proyectoinvestigacion",
+                    data: {'action':'informetecnicopdf', 'id': id},
+                    success: function(data) {
+                        console.log(data);
+                        $.unblockUI();
+                        if (data.result=='ok'){
+                            window.open(data.documento, '_blank');
+                            location.reload();
+                        } else {
+                            smoke.alert(data.mensaje);
+                        }
+                    },
+                    error: function() {
+                        $.unblockUI();
+                        smoke.alert("Error de conexión.");
+                    },
+                    dataType: "json"
+                });
+            });
+
+            $(".subirinforme").click(function() {
+                var id = $(this).attr('id');
+                bloqueointerface();
+                $.ajax({
+                    type: "GET",
+                    url: "/adm_proyectoinvestigacion",
+                    data: {'action': 'subirinforme', 'id': id},
+                    success: function(data) {
+                        $.unblockUI();
+                        if (data.result == 'ok') {
+                            $(".panelbodysubirinforme").html(data.data);
+                            $(".paneltitlesubirinforme").html(data.title);
+                            $("#itemspanelsubirinforme").modal({backdrop:'static', width: '700px'}).modal('show');
+                        } else {
+                            smoke.alert(data.mensaje);
+                        }
+                    },
+                    error: function() {
+                        $.unblockUI();
+                        smoke.alert("Error de conexión.");
+                    },
+                    dataType: "json"
+                });
+            });
+
+            $("#itemspanelsubirinforme .guardar").click(function () {
+                envioformularioreg("/adm_proyectoinvestigacion","subirinforme", false);
+                return false;
+            });
+
+            $("#itemspanelsubirinforme .cerrar").click(function () {
+                $('#itemspanelsubirinforme').modal('hide');
+            });
+
+            $("#itemspanelsubirinforme .cerrar2").click(function () {
+                $('#itemspanelsubirinforme').modal('hide');
+            });
+
+            envioformularioreg = function(url, action, destino){
+                if(action == 'subirinforme')
+                    var valido = validarformularinforme();
+                else if (action == 'validarinformefirmado'){
+                    $("#frmValidarInforme").validationEngine('attach',{ scroll: false });
+                    valido = $("#frmValidarInforme").validationEngine('validate', { scroll: false });
+                }
+
+                if (valido){
+                    bloqueointerface();
+
+                    if(action == 'subirinforme')
+                        var formdata = new FormData($("#formulario1")[0]);
+                    else if(action == 'validarinformefirmado')
+                        var formdata = new FormData($("#frmValidarInforme")[0]);
+
+                    $.ajax({
+                        type: "POST",
+                        action : action,
+                        url: url,
+                        data:  formdata,
+                        success: function(data) {
+                            if (data.result == 'ok') {
+                                if(action == 'subirinforme' || action == 'validarinformefirmado') {
+                                    location.reload();
+                                }
+                            } else {
+                                $.unblockUI();
+                                smoke.alert(data.mensaje);
+                            }
+                        },
+                        error: function() {
+                            $.unblockUI();
+                            smoke.alert("Error al enviar los datos.");
+                        },
+                        dataType: "json",
+                        cache: false,
+                        contentType: false,
+                        processData: false
+                    });
+                }else{
+                    setTimeout(function() {
+                        $('.help-text').html("");
+                    }, 8000);
+                    $.unblockUI();
+                }
+            };
+
+            validarformularinforme = function (){
+                var validacion = true;
+
+                if($("#archivoinforme").get(0).files.length == 0){
+                    smoke.alert("Seleccione el archivo del informe firmado");
+                    return false;
+                }
+                return validacion;
+            };
+
+            $(".mostrarevidencias").click(function() {
+                var id = $(this).attr('id');
+                bloqueointerface();
+                $.ajax({
+                    type: "GET",
+                    url: "/adm_proyectoinvestigacion",
+                    data: {'action': 'mostrarevidenciasinforme', 'id': id},
+                    success: function(data) {
+                        $.unblockUI();
+                        if (data.result == 'ok') {
+                            $(".panelbodyevidencias").html(data.data);
+                            $("#itemspanelevidencias").modal({backdrop:'static', width: '700px', height: 'auto'}).modal('show');
+                        } else {
+                            mensajeErrorSwal("No se puede consultar", data.mensaje);
+                        }
+                    },
+                    error: function() {
+                        $.unblockUI();
+                        mensajeErrorSwal("No se puede consultar", "Error al enviar los datos")
+                    },
+                    dataType: "json"
+                });
+            });
+
+            $("#itemspanelevidencias .btn-cerrar").click(function() {
+                $("#itemspanelevidencias").modal("hide");
+            });
+            
+            $(".validarinforme").click(function() {
+                var id = $(this).attr('id');
+                bloqueointerface();
+                $.ajax({
+                    type: "GET",
+                    url: "/adm_proyectoinvestigacion",
+                    data: {'action': 'validarinformefirmado', 'id': id},
+                    success: function(data) {
+                        $.unblockUI();
+                        if (data.result == 'ok') {
+                            $(".panelbodyvalidarinforme").html(data.data);
+                            $(".paneltitlevalidarinforme").html(data.title);
+                            $("#itemspanelavalidarinforme").modal({backdrop:'static', width: '700px'}).modal('show');
+                        } else {
+                            mostrarMensajeError("No se puede consultar", data.mensaje);
+                        }
+                    },
+                    error: function() {
+                        $.unblockUI();
+                        mostrarMensajeError("No se puede consultar", "Error al enviar los datos");
+                    },
+                    dataType: "json"
+                });
+            });
+
+            $("#itemspanelavalidarinforme .guardar").click(function () {
+                envioformularioreg("/adm_proyectoinvestigacion","validarinformefirmado", false);
+                return false;
+            });
+
+            $("#itemspanelavalidarinforme .cerrar").click(function () {
+                $('#itemspanelavalidarinforme').modal('hide');
+            });
+
+            $("#itemspanelavalidarinforme .cerrar2").click(function () {
+                $('#itemspanelavalidarinforme').modal('hide');
+            });
+
+
+        });
+    </script>
+{% endblock %}
+{% block atras %}/adm_proyectoinvestigacion?id={{ proyecto.id|encrypt }}&action=propuestas&idc={{ proyecto.convocatoria.id|encrypt }}{% endblock %}
+{% block canvas %}
+    <div class='row-fluid'>
+        <div class='span12'>
+            <h4>{{ title }}</h4>
+        </div>
+    </div>
+    <div class="alert alert-info" style="text-align: justify">
+        <strong>{{ proyecto.titulo }}</strong>
+    </div>
+    {% if not proyecto.verificainforme %}
+        <div class="alert alert-error" style="text-align: justify">
+            <strong>ATENCIÓN: No tiene asignado revisor de informes. Por favor ponerse en contacto con la Coordinación de Investigación</strong>
+        </div>
+    {% else %}
+        <div class='row-fluid'>
+            <div class='span12'>
+{#                {% if proyecto.puede_agregar_informe %}#}
+{#                    <a href="/adm_proyectoinvestigacion?action=addinforme&idp={{ proyecto.id|encrypt }}" class='btn btn-success tu' title="Agregar Informe"><span class="fa fa-plus" ></span> Agregar</a>#}
+{#                {% else %}#}
+{#                    <div class="alert alert-warning" style="text-align: justify">#}
+{#                        <strong>ATENCIÓN: No podrá agregar más informes hasta que el último registrado tenga estado APROBADO</strong>#}
+{#                        <strong>ATENCIÓN: No podrá agregar más informes hasta que el último registrado tenga estado VERIFICADO</strong>#}
+{#                    </div>#}
+{#                {% endif %}#}
+            </div>
+        </div>
+    {% endif %}
+    <div class="row-fluid" id="detalleinformes">
+        <table class="table table-bordered" id="tbinformes">
+            <thead>
+                <tr>
+                    <th style="width: 10%; text-align: center">Tipo</th>
+                    <th style="width: 10%; text-align: center">Número</th>
+                    <th style="width: 10%; text-align: center">Fecha</th>
+                    <th style="width: 10%; text-align: center">Archivo</th>
+                    <th style="width: 10%; text-align: center"># Actividades</th>
+                    <th style="width: 10%; text-align: center"># Evidencias</th>
+                    <th style="width: 10%; text-align: center">Evidencias</th>
+                    <th style="width: 5%; text-align: center">Estado</th>
+                    <th style="width: 20%; text-align: center">Observaciones</th>
+                    <th style="width: 5%;text-align: center">Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="detalle_informes">
+                {% for informe in informes %}
+                    <tr>
+                        <td style="text-align: justify;">INFORME {{ informe.get_tipo_display }} {% if informe.tipo == 1 %} # {{ forloop.counter }}{% endif %}</td>
+                        <td style="text-align: center;">{% if informe.numero %}<span class="label label-success">{{ informe.numero }}</span>{% endif %}</td>
+                        <td style="text-align: center;">{% if informe.fecha %}<span class="label label-info">{{ informe.fecha|date:"Y-m-d" }}</span>{% endif %}</td>
+                        <td style="text-align: center;">
+                            {% if informe.archivogenerado %}
+                                <a target="_blank" href="{{ informe.archivogenerado.url }}" class="btn btn-mini btn-info tu" title="Descargar Informe sin firmas"><i class="fa fa-download"></i> </a>
+                            {% endif %}
+                            {% if informe.archivo %}
+                                <a target="_blank" href="{{ informe.archivo.url }}" class="btn btn-mini btn-success tu" title="Descargar Informe Firmado"><i class="fa fa-download"></i> </a>
+                            {% endif %}
+                        </td>
+                        <td style="text-align: center"><span class="badge badge-warning">{{ informe.total_actividades }}</span></td>
+                        <td style="text-align: center"><span class="badge badge-info">{{ informe.total_evidencias }}</span></td>
+                        <td style="text-align: center;">
+                            {% if informe.total_evidencias > 0 %}
+                                <a href="javascript:;" id="{{ informe.id|encrypt }}" class="btn btn-info mostrarevidencias btn-mini tu" data-original-title="Mostrar evidencias"><i class="fa fa-align-justify"></i></a>
+                            {% endif %}
+                        </td>
+                        <td style="text-align: center;"><span class="label label-{{ informe.color_estado }}">{{ informe.get_estado_display }}</span></td>
+                        <td style="text-align: justify">
+                            {% if informe.observacionverificacion %}
+                                <strong class="tu" title="Técnico de Investigación">TI:</strong>{{ informe.observacionverificacion }}<br>
+                            {% endif %}
+                            {% if informe.observacionaprobacion %}
+                                <strong class="tu" title="Coordinador de Investigación">CI:</strong>{{ informe.observacionaprobacion }}<br>
+                            {% endif %}
+                        </td>
+                        <td style="text-align: center">
+{#                            <div class="btn-group" style="text-align: left">#}
+{#                                <a class="btn btn-mini dropdown-toggle" data-toggle="dropdown" href="javascript:;">Acciones Docente<span class="caret"></span>#}
+{#                                </a>#}
+{#                                <ul class="dropdown-menu pull-right">#}
+{#                                    {% if informe.estado == 3 or informe.estado == 6 %}#}
+{#                                        <li><a href="/adm_proyectoinvestigacion?action=editinforme&id={{ informe.id|encrypt }}"><i class="fa fa-edit"></i> Editar Informe</a></li>#}
+{#                                    {% endif %}#}
+{#                                    {% if informe.estado == 7 or informe.estado == 4 %}#}
+{#                                        <li><a href="javascript:;" class="imprimirinforme" id="{{ informe.id|encrypt }}"><i class="fa fa-print"></i> Imprimir Informe</a></li>#}
+{#                                        <div class="divider-line"></div>#}
+{#                                        <li><a href="javascript:;" class="subirinforme" id="{{ informe.id|encrypt }}"><i class="fa fa-cloud-upload"></i> Subir Informe Firmado</a></li>#}
+{#                                    {% endif %}#}
+{#                                </ul>#}
+{#                            </div>#}
+
+                            {% if informe.estado != 10 %}
+                                <div class="btn-group" style="text-align: left">
+                                    <a class="btn btn-mini dropdown-toggle" data-toggle="dropdown" href="javascript:;">Acciones<span class="caret"></span>
+                                    </a>
+                                    <ul class="dropdown-menu pull-right">
+                                        {% if informe.puede_revisar_aprobar %}
+                                            {% if persona.mi_cargo.id != 143 %}
+                                                {% if informe.estado == 3 or informe.estado == 5 or informe.estado == 6 or informe.estado == 8 %}
+                                                    {% if informe.tipo == 1 %}
+                                                        <li><a href="/adm_proyectoinvestigacion?action=revisarinforme&id={{ informe.id|encrypt }}"><i class="fa fa-check-square-o"></i> Revisar Informe</a></li>
+                                                    {% else %}
+                                                        <li><a href="/adm_proyectoinvestigacion?action=revisarinformefinal&id={{ informe.id|encrypt }}"><i class="fa fa-check-square-o"></i> Revisar Informe</a></li>
+                                                    {% endif %}
+                                                {% endif %}
+                                                {% if informe.estado == 4 %}
+                                                    <li><a href="javascript:;" class="validarinforme" id="{{ informe.id|encrypt }}"><i class="fa fa-check"></i> Validar Informe Firmado</a></li>
+                                                {% endif %}
+                                            {% else %}
+                                                {% if informe.estado != 4 %}
+                                                    {% if informe.estado == 5 or informe.estado == 7 or informe.estado == 8 %}
+                                                        {% if informe.tipo == 1 %}
+                                                            <li><a href="/adm_proyectoinvestigacion?action=aprobarinforme&id={{ informe.id|encrypt }}"><i class="fa fa-handshake-o"></i> Aprobar Informe</a></li>
+                                                        {% else %}
+                                                            <li><a href="/adm_proyectoinvestigacion?action=aprobarinformefinal&id={{ informe.id|encrypt }}"><i class="fa fa-handshake-o"></i> Aprobar Informe</a></li>
+                                                        {% endif %}
+                                                    {% endif %}
+                                                {% endif %}
+                                            {% endif %}
+                                        {% endif %}
+                                    </ul>
+                                </div>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="10" style="text-align: center">NO EXISTEN REGISTROS DE INFORMES DEL PROYECTO</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="modal fade static"  data-keyboard="false" id="itemspanelsubirinforme" style="display: none;">
+        <div class="modal-header">
+            <table border="0" width="100%" style="background-color: transparent">
+                <tr>
+                    <td style="width: 80%"><h4 class="paneltitlesubirinforme">Título del Modal</h4></td>
+                    <td><a href="javascript:;" title="Cerrar" class="btn btn-danger btn-mini pull-right cerrar2"><i class="fa fa-remove"></i></a></td>
+                </tr>
+            </table>
+        </div>
+        <div class="modal-body panelbodysubirinforme">
+        </div>
+        <div class="modal-footer" style="text-align: right">
+            <a href="javascript:;" class="btn btn-success guardar"> Guardar</a>
+            <a href="javascript:;" class="btn btn-danger cerrar"> Cancelar</a>
+        </div>
+    </div>
+
+    <div class="modal fade static" data-keyboard="false" id="itemspanelevidencias" style="display: none;">
+        <div class="modal-header">
+            <h4 class="paneltitleevidencias">Evidencias del Informe de proyecto de investigación</h4>
+        </div>
+        <div class="modal-body panelbodyevidencias">
+        </div>
+        <div class="modal-footer">
+            <table class="pull-right">
+                <tr>
+                    <td><a href="javascript:;" class="btn btn-cerrar btn-info">Cerrar</a></td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <div class="modal fade static"  data-keyboard="false" id="itemspanelavalidarinforme" style="display: none;">
+        <div class="modal-header">
+            <table border="0" width="100%" style="background-color: transparent">
+                <tr>
+                    <td style="width: 80%"><h4 class="paneltitlevalidarinforme">Título del Modal</h4></td>
+                    <td><a href="javascript:;" title="Cerrar" class="btn btn-danger btn-mini pull-right cerrar2"><i class="fa fa-remove"></i></a></td>
+                </tr>
+            </table>
+        </div>
+        <div class="modal-body panelbodyvalidarinforme">
+        </div>
+        <div class="modal-footer" style="text-align: right">
+            <a href="javascript:;" class="btn btn-success guardar"> Guardar</a>
+            <a href="javascript:;" class="btn btn-danger cerrar"> Cancelar</a>
+        </div>
+    </div>
+
+{% endblock %}

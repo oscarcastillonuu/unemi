@@ -1,0 +1,22 @@
+{% extends "ajaxformdinamicbs.html" %}
+{% block extraheading %}
+    <script>
+        $(function () {
+
+            $("#id_horas, #id_fechainicio, #id_fechafinalizacion").addClass("validate[required]");
+            $("#id_fechainicio,#id_fechafinalizacion").datepicker({format: "dd-mm-yyyy"}).on("changeDate", function (ev) {
+                $(this).datepicker("hide");
+            });
+        });
+    </script>
+{% endblock %}
+{% block formaction %}/programasvinculacion{% endblock %}
+{% block formdestination %}/programasvinculacion?action=participantesproyectos&id={{ participante.proyecto.pk }}{% endblock %}
+{% block formextra %}
+
+    <input type='hidden' name='id' id='id' value='{{ participante.id }}'/>
+    <input type='hidden' name='action' value='registrarhoras'/>
+
+{% endblock %}
+{% block formback %}/programasvinculacion?action=ejecucion{% endblock %}
+{% block buttonname %}Guardar{% endblock %}

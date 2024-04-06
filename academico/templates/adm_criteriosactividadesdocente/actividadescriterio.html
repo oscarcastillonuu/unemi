@@ -1,0 +1,119 @@
+{% extends "basebs.html" %}
+{% load sga_extras %}
+{% block heading %}
+    <script>
+        $(function() {
+            $('.activar_actividad').click(function(){
+                var id = $(this).attr('eid');
+                var valor;
+                if ($(this).is(':checked')){
+                    valor = 'y';
+                } else {
+                    valor = 'n';
+                }
+                bloqueointerface();
+                $.ajax({
+                    type: "POST",
+                    url: "/adm_criteriosactividadesdocente",
+                    data: {'action': 'activacion_actividad', 'id': id, 'val': valor},
+                    success: function(data) {
+                        if (data.result == 'ok') {
+                            $.unblockUI();
+                            location.reload();
+                        } else {
+                            $.unblockUI();
+                            if (valor=='y'){
+                                $("#activar_actividad_"+id).prop('checked', false);
+                            } else {
+                                $("#activar_actividad_"+id).prop('checked', true);
+                            }
+                            smoke.alert(data.mensaje);
+                        }
+                    },
+                    error: function() {
+                        $.unblockUI();
+                        if (valor=='y'){
+                            $("#activar_actividad_"+id).prop('checked', false);
+                        } else {
+                            $("#activar_actividad_"+id).prop('checked', true);
+                        }
+                        smoke.alert("Error al enviar los datos.");
+                    },
+                    dataType: "json"
+                });
+            });
+        });
+    </script>
+{% endblock %}
+{% block atras %}/adm_criteriosactividadesdocente?action=criterios&id={{ detalle.distributivo.profesor.id }}&iddistri={{ detalle.distributivo.id }}&t={{ detalle.tipo }}{% endblock %}
+{% block canvas %}
+    <div class='row-fluid'>
+        <div class='span12'>
+            <h4>{{ title }}</h4>
+            <h5>Criterio: {{ detalle.nombre }}</h5>
+            <h5>Profesor: {{ detalle.distributivo.profesor }}</h5>
+        </div>
+    </div>
+    {% if not periodo.cerradodistributivo %}
+        {% if not detalle.distributivo.periodo.finalizo %}
+            <div class='row-fluid'>
+                <div class='span12'>
+                    <a class="btn btn-success" href="/adm_criteriosactividadesdocente?action=addactividad&id={{ detalle.id }}"><i class="fa fa-plus"></i> Adicionar</a>
+                </div>
+            </div>
+        {% endif %}
+    {% endif %}
+    <div class='row-fluid'>
+        <div class='span12'>
+            <table class="table table-bordered table-stripped">
+                <thead>
+                <tr>
+                    <th>Actividades</th>
+                    <th style="width:80px; text-align: center">Inicio</th>
+                    <th style="width:80px; text-align: center">Fin</th>
+                    <th style="width:80px; text-align: center" >Vigencia</th>
+                    <th style="width:80px; text-align: center" >Horas</th>
+                    <th style="width:100px;" ></th>
+                </tr>
+                </thead>
+                <tbody id="contenido">
+                {% for actividad in detalle.actividades %}
+                    <tr>
+                        <td>{{ actividad.nombre }} </td>
+                        <td style="text-align: center;">{{ actividad.desde|date:"d-m-Y" }}</td>
+                        <td style="text-align: center">{{ actividad.hasta|date:"d-m-Y" }}</td>
+                        <td style="text-align: center ">
+                            <input class='activar_actividad tu'  id="activar_actividad{{ actividad.id }}"  eid='{{ actividad.id }}' type='checkbox' {% if actividad.vigente %}checked='checked'{% endif %}/>
+                        </td>
+                        <td style="text-align: center ">{{ actividad.horas|floatformat:0 }}</td>
+                        <td style="text-align: center ">
+                            {% if not periodo.cerradodistributivo %}
+                                {#                            {% if not detalle.distributivo.periodo.finalizo %}#}
+                                <a href="/adm_criteriosactividadesdocente?action=addhorascarrera&id={{ actividad.id }}" class="btn btn-info btn-mini tu" title="Adicionar Carreras"><i class="fa fa-table"></i></a>
+                                <a href="/adm_criteriosactividadesdocente?action=editactividad&id={{ actividad.id }}" class="btn btn-info btn-mini tu" title="Editar"><i class="fa fa-edit"></i></a>
+                                {% if perms.sga.puede_eliminar_criteriosdocentes %}
+                                    {% if not actividad.criterio.puede_eliminardetalleactividades %}
+                                        <a href="javascript:;" nhref="/adm_criteriosactividadesdocente?action=delactividad&id={{ actividad.id }}" class="btn btn-danger btn-mini eliminacionmodal tu" title="Eliminar"><i class="fa fa-remove"></i></a>
+                                    {% endif %}
+                                {% endif %}
+                                {#                            {% endif %}#}
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="5">NO EXISTEN ACTIVIDADES DEFINIDAS</td>
+                    </tr>
+                {% endfor %}
+                {% if detalle.actividades %}
+                    <tr>
+                        <td colspan=4></td>
+                        <td style="text-align: center"><b>{{ detalle.total_horas|floatformat:0 }}</b></td>
+                        <td></td>
+                    </tr>
+                {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}

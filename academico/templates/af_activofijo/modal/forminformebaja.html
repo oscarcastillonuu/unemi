@@ -1,0 +1,82 @@
+{% extends 'ajaxformmodal.html' %}
+{% load sga_extras %}
+{% block extra_input %}
+    <div class="row">
+        <div class="col-12 pe-0">
+            <table class="table table-bordered table-responsive pe-0" id="tbDetalle">
+                <thead class="table-light">
+                <tr>
+                    <th class="w-5 text-center"><i class="fa fa-sort-numeric-desc"></i></th>
+                    <th class="text-center w-90"><i class="fa fa-comment"></i> Detalle</th>
+                    <th class="text-center w-5"><a href="javascript:void(0)"
+                        onclick="btnAddDetalle()"
+                         class="btn btn-success btn-mini">
+                         <i class="fa fa-plus"></i></a>
+                     </th>
+                </tr>
+                </thead>
+                <tbody>
+                    {% for actividad in actividades %}
+                    <tr>
+                        <td class="text-center align-middle">
+                           {{ forloop.counter }}
+                        </td>
+                        <td class="text-center align-middle">
+                            <textarea name="actividades" id="{{ actividad.id }}" cols="" rows="2">{{ actividad }}</textarea>
+                        </td>
+                        <td class="text-center align-middle">
+                            <a href="javascript:void(0);" onclick="deleteInfo({{ actividad.id }})"  class="btn btn-danger btn-mini">
+                                <i class="fa fa-remove"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}
+{% block extra_button %}
+{% if informe %}
+    <a href="javascript:;"
+    onclick="eliminarajax('{{ informe.id|encrypt }}','{{ informe }}','delinformebaja')"
+     class="btn btn-danger rounded-pill fs-5" data-bs-dismiss="modal"><i class="fa fa-trash"></i> Eliminar</a>
+{% endif %}
+{% endblock %}
+{% block extra_js %}
+
+    <script>
+        var numDetalle = {{ actividades.count }}+1;
+        $(function () {
+            const cbSolicita = $('#id_solicita');
+            const cbResponsable = $('#id_responsable');
+            const departamento = $('#id_departamento');
+            const gestion = $('#id_gestion');
+            buscarPersona(cbSolicita, 'distributivo');
+            buscarPersona(cbResponsable, 'distributivo');
+            cargarSelectSecundario('cargargestion', departamento, gestion)
+        });
+        function btnAddDetalle() {
+            $('#tbDetalle tbody').append($('<tr>', {'id': numDetalle}).append(
+                $('<td class="text-center align-middle">', {}).append($('<label style="text-align: center;">' + `${numDetalle}` + '</label>')),
+                $('<td>', {}).append($('<textarea>', {
+                    'class': `form-control detalles`,
+                    'name':'actividades',
+                    'required': 'true',
+                })),
+                $('<td class="text-center align-middle">', {}).append($('<button>',{
+                    'type': 'button',
+                    'required': 'true',
+                    'onclick': `deleteInfo(${numDetalle})`,
+                    'class': 'btn btn-danger btn-mini deleteInfoDetalle',
+                    'html': '<i class="fa fa-times"></i>'
+                }))));
+                $('#guardarobservaciones').removeAttr('hidden')
+            numDetalle += 1;
+        }
+        function deleteInfo(id) {
+            numDetalle -= 1;
+            $(`#${id}`).closest('tr').remove();
+        }
+    </script>
+{% endblock %}

@@ -1,0 +1,271 @@
+{% extends "base.html" %}
+{% block heading %}
+    <script src="/static/adicionalesjs/formquestionb4.js?0.24"></script>
+    <link rel="stylesheet" href="/static/cabonads.css?0.3.3">
+    <script type="text/javascript">
+        $(function () {
+
+            $("#search").click(function () {
+                var term = $("#searchinput").val().toUpperCase();
+                var tipo = $("#tipobusqueda").val();
+                location.href = "/adm_departamentos?s=" + term + "&tipo=" + tipo;
+            });
+
+            $('#searchinput').keyup(function (e) {
+                if (e.keyCode == 13) {
+                    $("#search").trigger("click");
+                }
+            });
+            $("#tipobusqueda").change(function () {
+                var tipo = $(this).val();
+                var term = $("#searchinput").val().toUpperCase();
+                if (term.length > 0) {
+                    location.href = "/adm_departamentos?tipo=" + tipo + "&s=" + term;
+                } else {
+                    location.href = "/adm_departamentos?tipo=" + tipo;
+                }
+            });
+
+            $('.cambiar_mostrar').click(function () {
+                var id = $(this).attr('eid');
+                var valor;
+                if ($(this).is(':checked')) {
+                    valor = 'y';
+                } else {
+                    valor = 'n';
+                }
+                bloqueointerface();
+                $.ajax({
+                    type: "POST",
+                    url: "/adm_departamentos",
+                    data: {'action': 'cambiarmostrar', 'id': id, 'val': valor},
+                    success: function (data) {
+                        if (data.result == 'ok') {
+                            $.unblockUI();
+                        } else {
+                            $.unblockUI();
+                            if (valor == 'y') {
+                                $("#cambiar_mostrar" + id).prop('checked', false);
+                            } else {
+                                $("#cambiar_mostrar" + id).prop('checked', true);
+                            }
+                            smoke.alert(data.mensaje);
+                        }
+                    },
+                    error: function () {
+                        $.unblockUI();
+                        if (valor == 'y') {
+                            alert();
+                            $("#cambiar_mostrar_" + id).prop('checked', false);
+                        } else {
+                            $("#cambiar_mostrar_" + id).prop('checked', true);
+                        }
+                        smoke.alert("Error al enviar los datos.");
+                    },
+                    dataType: "json"
+                });
+            });
+
+            $('.cambiar_actividad').click(function () {
+                var id = $(this).attr('eid');
+                var valor;
+                if ($(this).is(':checked')) {
+                    valor = 'y';
+                } else {
+                    valor = 'n';
+                }
+                bloqueointerface();
+                $.ajax({
+                    type: "POST",
+                    url: "/adm_departamentos",
+                    data: {'action': 'cambiaractividad', 'id': id, 'val': valor},
+                    success: function (data) {
+                        if (data.result == 'ok') {
+                            $.unblockUI();
+                        } else {
+                            $.unblockUI();
+                            if (valor == 'y') {
+                                $("#cambiar_actividad" + id).prop('checked', false);
+                            } else {
+                                $("#cambiar_actividad" + id).prop('checked', true);
+                            }
+                            smoke.alert(data.mensaje);
+                        }
+                    },
+                    error: function () {
+                        $.unblockUI();
+                        if (valor == 'y') {
+                            alert();
+                            $("#cambiar_actividad" + id).prop('checked', false);
+                        } else {
+                            $("#cambiar_actividad" + id).prop('checked', true);
+                        }
+                        smoke.alert("Error al enviar los datos.");
+                    },
+                    dataType: "json"
+                });
+            });
+
+
+        });
+    </script>
+{% endblock %}
+{% block canvas %}
+    <div class='row'>
+        <div class='col-lg-12'>
+            <div class='headtitle'>
+                <h3 class="texto-blue">{{ title }}</h3>
+                <h6>Gestión de direcciones</h6>
+            </div>
+        </div>
+    </div>
+    <div class='container-fluid'>
+        <div class='row'>
+            <div class='col-sm-3'>
+                <a href="/adm_departamentos?action=adddepartamento" class='btn btn-success'><span
+                        class="fa fa-plus "></span> Adicionar</a>
+                <a href="?action=productos" class='btn btn-cian-opacity'><span class="fa fa-archive"></span>
+                    Productos/Servicios</a>
+
+
+                <button id="btnGroupDrop2" type="button" class="btn btn-default dropdown-toggle"
+                        data-bs-toggle="dropdown" aria-expanded="false">
+                    Reportes <i class="fa fa-angle-down"></i>
+                </button>
+                <ul class="dropdown-menu ">
+                    <li><a class="dropdown-item" target="_blank" href="/adm_departamentos?action=reportesxls">
+                        <i class='fa fa-file-excel dropdown-item-icon'></i>
+                        Reporte General</a></li>
+                    <li><a class="dropdown-item" target="_blank" href="/adm_departamentos?action=reportesxlsdepint"><i
+                            class='fa fa-file-excel dropdown-item-icon'></i> Reporte Integrantes</a></li>
+                </ul>
+                {#        </div>#}
+                {#    </div>#}
+
+            </div>
+            <div class="col-sm-3">
+                <form class="form-search">
+                    <b>Tipo de busqueda: </b>
+                    <select name="tipobusqueda" id="tipobusqueda" style="width: 200px">
+                        <option{% if tipob == 1 %} selected {% endif %} value="1">Todos</option>
+                        <option{% if tipob == 2 %} selected {% endif %} value="2">Con integrantes</option>
+                        <option{% if tipob == 3 %} selected {% endif %} value="3">Sin integrantes</option>
+                    </select>
+                </form>
+            </div>
+            <div class="col-sm-4" style="text-align: right">
+                <form class="form-search" onsubmit="return busqueda()">
+                    <input class='searchinput' type='text' id='searchinput' value='{{ search }}' autocomplete="off"
+                    style="width: {% if search or ids %}60{% else %}70{% endif %}%!important;"/>
+                    <a href="javascript:;" id='search' class='btn btn-primary-old'><span class="fa fa-search "></span> </a>
+                    {% if search or ids %}
+                        <a href="/adm_departamentos?tipo=1" id='allresults' class='btn btn-default'><span
+                                class="fa fa-refresh "></span> </a>
+                    {% endif %}
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="card mb-4">
+        <div class="card-body rounded-3 border-dark-info">
+            <table class="tabla_responsive table table_primary">
+                <thead>
+                <tr>
+                    <th>No ingresa actividades <br> en plantilla</th>
+                    <th>Mostrar en plantilla</th>
+                    <th>Departamento</th>
+                    <th style="width: 80px; text-align: center">Cod. Indice</th>
+                    <th style="width: 400px; text-align: center">Responsable</th>
+                    <th style="width: 400px; text-align: center">Responsable Subrogante</th>
+                    <th style="width: 80px; text-align: center">Integrantes</th>
+                    <th style="width: 80px; text-align: center">Permisos</th>
+                    <th style="width: 80px; text-align: center">Cant. productos</th>
+                    <th style="width: 90px"></th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for departamento in departamentos %}
+                    <tr>
+                        <td style="text-align: center;">
+                            <input class='cambiar_actividad tu' id="cambiar_actividad{{ departamento.id }}"
+                                   eid='{{ departamento.id }}'
+                                   title='llenar' type='checkbox'
+                                   {% if departamento.noactividades %}checked='checked'{% endif %}/>
+                        </td>
+                        <td style="text-align: center;">
+                            <input class='cambiar_mostrar tu' id="cambiar_mostrar_{{ departamento.id }}"
+                                   eid='{{ departamento.id }}'
+                                   title='Publicar' type='checkbox'
+                                   {% if departamento.visualizath %}checked='checked'{% endif %}/>
+                        </td>
+                        <td>{{ departamento.nombre }}</td>
+                        <td style="text-align: center">{{ departamento.codigoindice }}</td>
+                        <td style="text-align: center">{{ departamento.responsable|default_if_none:"" }}</td>
+                        <td style="text-align: center">
+                            {% for rs in departamento.responsable_subrogante.all %}{{ rs }}<br>{% endfor %}</td>
+                        <td style="text-align: center">{{ departamento.cantidad_integrantes }}</td>
+                        <td style="text-align: center">{% if departamento.permisogeneral %}
+                            <i class="fa fa-check"></i>{% endif %}</td>
+                        <td style="text-align: center">{{ departamento.cantidad_producto_plantilla }}</td>
+
+                        <td class="text-center w-3">
+                            <div class="dropdown">
+                                <div class="dropdown dropleft">
+                                    <a href="javascript:void(0);"
+                                       class="btn-icon btn btn-ghost btn-sm rounded-circle"
+                                       data-bs-toggle="dropdown" data-offset="-140" aria-haspopup="true"
+                                       aria-expanded="false">
+                                        <i class="fa fa-ellipsis-v" aria-hidden="true"></i>
+                                    </a>
+                                    <ul class="dropdown-menu">
+
+                                        <span class="dropdown-header"><i class="fa fa-cogs"></i> Acciones</span>
+
+                                        <li><a class="dropdown-item"
+                                               href='/adm_departamentos?action=edit&id={{ departamento.id }}'>
+                                            <i class="fa fa-edit dropdown-item-icon"></i>
+                                            Editar</a></li>
+                                        <li><a class="dropdown-item"
+                                               href='/adm_departamentos?action=addresponsable&id={{ departamento.id }}'>
+                                            <i class="fa fa-user dropdown-item-icon"></i> Responsable</a>
+                                        </li>
+                                        <li><a class="dropdown-item"
+                                               href='/adm_departamentos?action=integrantes&id={{ departamento.id }}'>
+                                            <i class="fa fa-list dropdown-item-icon"></i>
+                                            Integrantes</a></li>
+                                        <li><a class="dropdown-item"
+                                               href='/adm_departamentos?action=secciones&id={{ departamento.id }}'>
+                                            <i class="fa fa-plus dropdown-item-icon"></i> Gestiones</a></li>
+
+
+                                        <li><a class="dropdown-item" href="javascript:void(0);" onclick="formModalBase('{{ departamento.id }}', 'Importar productos a {{ departamento.nombre }}', 'importaproducto')"
+                                               href='/adm_departamentos?action=secciones&id={{ departamento.id }}'>
+                                            <i class="fa fa-copy dropdown-item-icon"></i> Importar productos</a></li>
+                                        {# <li><a href='/adm_departamentos?action=registro_opciones&id={{ departamento.id }}'><i class="fa fa-edit fa-fw fa fa-table"></i> Opciones Integrantes</a></li>#}
+                                        {% if not departamento.en_uso %}
+                                            <li><a class="dropdown-item" onclick="eliminarajax('{{ departamento.id }}','{{ departamento }}','deldepartamento')" href="javascript:;"
+                                                   nhref="/adm_departamentos?action=deldepartamento&id={{ departamento.id }}"><i
+                                                    class="fa fa-trash dropdown-item-icon"></i> Eliminar</a></li>
+                                        {% endif %}
+                                    </ul>
+                                </div>
+
+
+                            </div>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="10">
+                            NO EXISTEN DEPARTAMENTOS EN EL SISTEMA
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="card-footer border-top-0">
+            {% include 'paginacionb4.html' %}
+        </div>
+    </div>
+{% endblock %}

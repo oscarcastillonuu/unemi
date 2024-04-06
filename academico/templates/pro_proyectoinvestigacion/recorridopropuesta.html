@@ -1,0 +1,69 @@
+{% load humanize %}
+{% block heading %}
+    <script type="text/javascript">
+        $(function() {
+            $('[data-bs-toggle="tooltip"]').tooltip();
+        });
+    </script>
+{% endblock %}
+<table class="table table-bordered" >
+    <thead>
+    <tr>
+        <th style="vertical-align: middle">Director:</th>
+        <td colspan="3" style="text-align: justify">{{ proyecto.nombre_director_proyecto }}</td>
+    </tr>
+    <tr>
+        <th style="vertical-align: middle">Título del Proyecto:</th>
+        <td colspan="3" style="text-align: justify">{{ proyecto.titulo }}</td>
+    </tr>
+    <tr>
+        <th>Estado:</th>
+        <td colspan="3" style="text-align: left"  ><span class="{{ proyecto.estado.clase }}" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ proyecto.estado.observacion }}">{{ proyecto.estado.descripcion }}</span></td>
+    </tr>
+    <tr>
+        <th style="width: 15%;">Usuario Solicita:</th>
+        <td style="width: 35%; vertical-align: middle">{% if proyecto.usuario_creacion.id == 1 %}administrador{% else %}{{ proyecto.usuario_creacion }}{% endif %}</td>
+        <th style="width: 15%; vertical-align: middle">Fecha Creación:</th>
+        <td style="width: 35%; vertical-align: middle">{{ proyecto.fecha_creacion|date:"d-m-Y" }}</td>
+    </tr>
+    </thead>
+</table>
+
+<table class="table table-bordered">
+    <thead class="table-light">
+    <tr>
+        <th style="width: 5%; text-align: center; ">#</th>
+        <th style="width: 15%; text-align: center; ">Estado</th>
+        <th style="width: 15%; text-align: center;  ">Fecha</th>
+        <th style="width: 20%; text-align: center; ">Responsable</th>
+        <th style="width: 45%; text-align: center; ">Observaciones</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for detalle in recorrido %}
+        <tr>
+            <td style="text-align: right"><strong>{{ forloop.counter }}</strong></td>
+            <td style="text-align: center">
+                <span data-bs-toggle="tooltip" data-bs-placement="top" title="{{ detalle.estado.observacion }}" class="{{ detalle.estado.clase }}">{{ detalle.estado.descripcion }} </span>
+            </td>
+            <td style="text-align: center">{{ detalle.fecha|date:"d-m-Y" }}</td>
+            <td>
+                {% if detalle.usuario_creacion.id == 1 %}
+                    administrador
+                {% else %}
+                    {% if detalle.estado.valor != 7 and detalle.estado.valor != 32 and detalle.estado.valor != 36 and detalle.estado.valor != 10 and detalle.estado.valor != 33 and detalle.estado.valor != 37 %}
+                        {{ detalle.usuario_creacion }}
+                    {% else %}
+                        {% if not perfildocente %}{{ detalle.usuario_creacion }}{% else %}--------{% endif %}
+                    {% endif %}
+                {% endif %}
+            </td>
+            <td>{{ detalle.observacion|safe }}</td>
+        </tr>
+    {% empty %}
+        <tr>
+            <td colspan="5" style="text-align: center">NINGUN REGISTRO</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>

@@ -1,0 +1,41 @@
+.notification-container {
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-orient: vertical;
+    -webkit-box-direction: normal;
+    -ms-flex-direction: column;
+    flex-direction: column
+}
+
+.notification {
+    width: 25%;
+    background: #70c48f;
+    color: white;
+    border-radius: 3px;
+    font-size: 0.9rem;
+    padding: 0.5rem 1rem;
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-pack: center;
+    -ms-flex-pack: center;
+    justify-content: center;
+    -webkit-box-align: center;
+    -ms-flex-align: center;
+    align-items: center;
+    position: fixed;
+    right: 0;
+    -webkit-transition: all 0.3s;
+    transition: all 0.3s
+}
+
+.notification.disappear {
+    visibility: hidden
+}
+
+@media (max-width: 600px) {
+    .notification {
+        width: 60%
+    }
+}

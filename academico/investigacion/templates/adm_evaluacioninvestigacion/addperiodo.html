@@ -1,0 +1,62 @@
+{% extends "ajaxform.html" %}
+{% load sga_extras %}
+{% block extraheading %}
+    <script type="text/javascript">
+        $(function(){
+            $("#id_descripcion").addClass("validate[required]");
+            $("#id_inicio, #id_fin").addClass("validate[required]");
+            $("#id_descripcion").css('text-transform', 'uppercase');
+
+            $(".porcentaje").blur(function () {
+                numerico($(this), 0, 100, 2);
+            });
+
+            agregaValidacionDetalleCriterio = function (){
+                $(".porcentaje").each(function(){
+                    $(this).addClass("validate[required, min[1], max[100]]");
+                });
+            };
+
+            agregaValidacionDetalleCriterio();
+        });
+    </script>
+{% endblock %}
+{% block atras %}/adm_evaluacioninvestigacion{% endblock %}
+{% block titulo %}{{ title }}{% endblock %}
+{% block formaction %}/adm_evaluacioninvestigacion{% endblock %}
+{% block formdestinationswal %}/adm_evaluacioninvestigacion{% endblock %}
+{% block formextra %}
+    <input type='hidden' name='action' value='addperiodo'/>
+{% endblock %}
+{% block formback %}/adm_evaluacioninvestigacion{% endblock %}
+{% block buttonname %}Guardar{% endblock %}
+{% block formsuffix %}
+    <div style="width: 100%; height: max-content; display: inline-block">
+        <h6 style="width:100%; text-align:left; border-bottom: 1px solid #98a3ab; line-height:0.1em; margin:10px 0 20px;"><span id="separator2title_criterios" style="padding:0 10px; background: white;">Criterios de Evaluación</span></h6>
+    </div>
+    <div class="row-fluid">
+        <table class="table table-bordered table-striped" id="tbdetallecriterios">
+            <thead class="table-light">
+                <tr>
+                    <th style="width: 3%; text-align: center;">#</th>
+                    <th style="width: 40%; text-align: center;">Criterio</th>
+                    <th style="width: 47%; text-align: center;">Medio de verificación</th>
+                    <th style="width: 10%; text-align: center;">% Calificación</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for criterio in criterios %}
+                    <tr>
+                        <td style="text-align: center">{{ criterio.numero }}</td>
+                        <td style="text-align: justify">{{ criterio.descripcion }}</td>
+                        <td style="text-align: justify">{{ criterio.medioverificacion }}</td>
+                        <td style="text-align: justify">
+                            <input autocomplete="off" class="porcentaje" style="text-align: right; width: 100%; text-transform: none" maxlength="6" id="porcentaje{{ forloop.counter }}" name="porcentaje[]" type="text" value="" >
+                            <div class="help-text" style="color: #dc1414; font-size: xx-small; margin-bottom: 0;"> </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}

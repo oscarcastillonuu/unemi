@@ -1,0 +1,52 @@
+{
+    "short_name": "SGA-Estudiante",
+    "name": "Sistema Gestión Académica Estudiantil",
+    "start_url": "/",
+    "icons": [
+        {
+            "src": "/pwalogo/72x72.png",
+            "sizes": "72x72",
+            "type": "image/png"
+        },
+        {
+            "src": "/pwalogo/96x96.png",
+            "sizes": "96x96",
+            "type": "image/png"
+        },
+        {
+            "src": "/pwalogo/128x128.png",
+            "sizes": "128x128",
+            "type": "image/png"
+        },
+        {
+            "src": "/pwalogo/144x144.png",
+            "sizes": "144x144",
+            "type": "image/png"
+        },
+        {
+            "src": "/pwalogo/152x152.png",
+            "sizes": "152x152",
+            "type": "image/png"
+        },
+        {
+            "src": "/pwalogo/192x192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "/pwalogo/384x384.png",
+            "sizes": "384x384",
+            "type": "image/png"
+        },
+        {
+            "src": "/pwalogo/512x512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ],
+    "background_color": "#ffffff",
+    "display": "standalone",
+    "scope": "/",
+    "theme_color": "#012e46",
+    "description": "Universidad Estatal de Milagro"
+}
